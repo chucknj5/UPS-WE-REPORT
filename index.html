@@ -136,7 +136,7 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px
   <label>Week Ending<select id="week"></select></label>
   <div class="sp"></div>
   <span id="saveStat" class="savestat"></span>
-  <button class="pri" id="btnSync" title="Pull this week from uAttend (via Google Sheets) into the report">⟳ SYNC</button>
+  <button class="pri" id="btnSync" title="Load this week from uAttend (Google Sheets); refreshes yesterday + today live">⟳ SYNC</button>
   <button id="btnCloud" title="uAttend / Google Sheets settings">☁</button>
   <button id="btnBackup" title="Download a backup of all saved days (drop it back in to restore)">BACKUP</button>
   <button id="btnPrint">PRINT</button>
@@ -1128,8 +1128,8 @@ function cloudDialog(){
   const dlg=document.getElementById('dlg');
   const we=S.week||iso(weSat(new Date()));
   dlg.innerHTML=`<div class="card" style="width:min(560px,94vw)"><h3 style="margin-top:0">☁ UATTEND → GOOGLE SHEETS</h3>
-   <label>WEB APP URL (from the Sheet's Apps Script ▸ Deploy)<input id="cUrl" value="${esc(CLOUD.url)}" placeholder="https://script.google.com/macros/s/…/exec"></label>
-   <label>WEB TOKEN (uAttend menu ▸ Show settings)<input id="cTok" value="${esc(CLOUD.token)}"></label>
+   <div style="${CLOUD.builtin?'display:none':''}"><label>WEB APP URL (from the Sheet's Apps Script ▸ Deploy)<input id="cUrl" value="${esc(CLOUD.url)}" placeholder="https://script.google.com/macros/s/…/exec"></label>
+   <label>WEB TOKEN<input id="cTok" value="${esc(CLOUD.token)}"></label></div>${CLOUD.builtin?'<div class="hint">✓ Connected to the uAttend Google Sheet (built in).</div>':''}
    <label>ACCOUNT<select id="cAcct" style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px"><option value="${esc(CLOUD.account)}">${esc(CLOUD.account||'(all accounts)')}</option></select></label>
    <label>WEEK ENDING (Saturday)<input id="cWe" type="date" value="${we}"></label>
    <label style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)"><input type="checkbox" id="cAuto" ${CLOUD.auto?'checked':''} style="width:auto"> Load this week automatically when I open the page</label>
@@ -1159,6 +1159,7 @@ document.getElementById('btnSync').onclick=()=>{
   cloudDialog();cloudLoad(document.getElementById('cWe').value,true,true);
 };
 (async()=>{
+  if(ONLINE){try{const c=await (await fetch('/api/config',{cache:'no-store'})).json();if(c&&c.url&&c.token){CLOUD.url=c.url;CLOUD.token=c.token;if(!CLOUD.account)CLOUD.account=c.account||'';CLOUD.builtin=true;saveCloud()}}catch(e){}}
   if(await loadRemote())render();
   if(CLOUD.auto&&CLOUD.url&&CLOUD.token)cloudLoad(iso(weSat(new Date())),false,true);
 })();
