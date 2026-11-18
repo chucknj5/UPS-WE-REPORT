@@ -379,8 +379,11 @@ function doGet(e) {
     if (!P.getProperty('WEB_TOKEN') || p.token !== P.getProperty('WEB_TOKEN')) throw new Error('Bad or missing token');
     const act = p.action || 'data';
     if (act === 'pull') {
-      const days = daysBetween_(p.start, p.end || p.start).filter(d => d <= dayStr_(new Date()));
-      const done = pullDates_(days.slice(0, 7), p.account || '');
+      // live pull = yesterday + today only (each day takes ~1-2 min; Google stops a web call at 6 min).
+      // Older days are pulled by the 8 AM job and just read from the Sheet.
+      const today = dayStr_(new Date()), yday = dayStr_(new Date(Date.now() - 864e5));
+      const days = daysBetween_(p.start, p.end || p.start).filter(d => d >= yday && d <= today);
+      const done = days.length ? pullDates_(days, p.account || '') : ['(nothing to pull live — older days come from the daily 8 AM pull)'];
       out = { ok: true, pulled: done, data: readRange_(p.start, p.end || p.start, p.account) };
     } else if (act === 'dates') {
       out = { ok: true, dates: listDates_() };
