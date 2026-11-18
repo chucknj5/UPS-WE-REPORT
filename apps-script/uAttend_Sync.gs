@@ -19,7 +19,39 @@ const TAB = 'TIMECARD', LOGTAB = 'LOG';
 const HEAD = ['DATE', 'END DATE', 'ACCOUNT', 'EMPLOYEE NAME', 'PAYROLL ID', 'FIRST NAME', 'LAST NAME', 'DEPARTMENT NAME',
   'REG', 'REG Pay', 'OT1 Hours', 'OT1 Pay', 'OT2 Hours', 'OT2 Pay', 'TOTAL Hours', 'Total Pay', 'SOURCE', 'PULLED AT', 'FLAG'];
 const API = 'https://api.workwelltech.com';
+const SHEET_ID = '1ZBeXa_IoMUi1nqtZLqGj7u9uacQ-5LOOBhT1uSzvWEU';   // uAttend Timecard Data (W.E. Report)
+function ss_() { try { const a = SpreadsheetApp.getActive(); if (a) return a; } catch (e) {} return SpreadsheetApp.openById(SHEET_ID); }
+function ui_() { try { return SpreadsheetApp.getUi(); } catch (e) { return null; } }
 const P = PropertiesService.getScriptProperties();
+
+/* ================= ONE-TIME SETUP (run from the Apps Script editor) =================
+ * Put the account name + API key below, click Run ▸ SETUP_ONCE, then blank the key again.
+ * The key is stored in Script Properties (not in the Sheet or the web page).
+ */
+function SETUP_ONCE() {
+  const NAME = 'UPS Time Clock';   // exactly as on the top of uAttend's Timecard Report
+  const KEY = '';                  // paste the uAttend API key here for the first run only
+  ensureSheets_();
+  if (KEY) {
+    const list = accounts_().filter(a => a.name.toUpperCase() !== NAME.toUpperCase());
+    list.push({ name: NAME, key: KEY }); P.setProperty('ACCOUNTS', JSON.stringify(list));
+  }
+  if (!P.getProperty('WEB_TOKEN')) P.setProperty('WEB_TOKEN', Utilities.getUuid().slice(0, 8).toUpperCase());
+  if (!P.getProperty('PULL_BACK_DAYS')) P.setProperty('PULL_BACK_DAYS', '2');
+  dropFolder_();
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('pullYesterday').timeBased().everyDays(1).atHour(8).create();
+  ScriptApp.newTrigger('importDrops').timeBased().everyHours(1).create();
+  let test = '';
+  accounts_().forEach(a => { try { const d = dayStr_(new Date(Date.now() - 864e5));
+    const j = call_(a.key, '/reports/punch', { StartDate: d, EndDate: d, UsePaging: true, PageSize: 5, PageNumber: 0 });
+    const b = j.Body || j; test += '✓ ' + a.name + ' connected (' + (b.Total || 0) + ' punches ' + d + ')\n'; }
+    catch (e) { test += '✗ ' + a.name + ': ' + e.message + '\n'; } });
+  console.log(test); log_('SETUP', test);
+  console.log(showSettings());
+  pullYesterday();
+  console.log('Pulled. See the LOG tab in the Sheet.');
+}
 
 /* ================= MENU / SETUP ================= */
 function onOpen() {
@@ -62,16 +94,17 @@ function setup() {
 
 function showSettings() {
   const accts = accounts_();
-  SpreadsheetApp.getUi().alert('uAttend settings',
+  const msg = (
     'Accounts: ' + (accts.map(a => a.name + ' (key …' + a.key.slice(-4) + ')').join(', ') || 'none — run Setup') +
     '\n\nWEB TOKEN (paste into the W.E. Report ☁ UATTEND box): ' + (P.getProperty('WEB_TOKEN') || 'run Setup') +
     '\nDaily pull re-pulls the last ' + (P.getProperty('PULL_BACK_DAYS') || '2') + ' day(s) to catch timecard edits.' +
     '\nDrive drop folder: "uAttend Timecard Drops" (id ' + (P.getProperty('DROP_FOLDER_ID') || '—') + ')' +
-    '\nTime zone: ' + Session.getScriptTimeZone(), SpreadsheetApp.getUi().ButtonSet.OK);
+    '\nTime zone: ' + Session.getScriptTimeZone());
+  console.log(msg); const u = ui_(); if (u) u.alert('uAttend settings', msg, u.ButtonSet.OK); return msg;
 }
 
 function ensureSheets_() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = ss_();
   let sh = ss.getSheetByName(TAB);
   if (!sh) {
     sh = ss.getSheets()[0].getName() === 'Sheet1' && ss.getSheets()[0].getLastRow() === 0 ? ss.getSheets()[0].setName(TAB) : ss.insertSheet(TAB);
@@ -86,7 +119,7 @@ function ensureSheets_() {
   return sh;
 }
 function log_(what, detail) {
-  try { SpreadsheetApp.getActive().getSheetByName(LOGTAB).appendRow([new Date(), what, String(detail).slice(0, 4000)]); } catch (e) {}
+  try { ss_().getSheetByName(LOGTAB).appendRow([new Date(), what, String(detail).slice(0, 4000)]); } catch (e) {}
   console.log(what + ' ' + detail);
 }
 
@@ -239,7 +272,7 @@ function pullYesterday() {
   const back = Math.max(1, parseInt(P.getProperty('PULL_BACK_DAYS') || '2', 10));
   const days = []; for (let i = back; i >= 1; i--) days.push(dayStr_(new Date(Date.now() - i * 864e5)));
   const res = pullDates_(days);
-  try { SpreadsheetApp.getActive().toast(res.join('\n'), 'uAttend pull', 10); } catch (e) {}
+  try { ss_().toast(res.join('\n'), 'uAttend pull', 10); } catch (e) {}
 }
 function pullPrompt() {
   const ui = SpreadsheetApp.getUi();
@@ -321,7 +354,7 @@ function importDrops() {
     });
   } catch (e) { /* Gmail not authorized / not used */ }
   res.forEach(x => log_('CSV import', x));
-  try { SpreadsheetApp.getActive().toast(res.join('\n') || 'No new CSVs found', 'uAttend import', 10); } catch (e) {}
+  try { ss_().toast(res.join('\n') || 'No new CSVs found', 'uAttend import', 10); } catch (e) {}
   return res;
 }
 
@@ -330,7 +363,7 @@ function installTriggers() {
   removeTriggers();
   ScriptApp.newTrigger('pullYesterday').timeBased().everyDays(1).atHour(8).create();
   ScriptApp.newTrigger('importDrops').timeBased().everyHours(1).create();
-  SpreadsheetApp.getUi().alert('Installed: pull from uAttend every day ~8 AM (' + Session.getScriptTimeZone() + '), and import dropped/emailed Timecard Report CSVs every hour.');
+  const u = ui_(); if (u) u.alert('Installed: pull from uAttend every day ~8 AM (' + Session.getScriptTimeZone() + '), and import dropped/emailed Timecard Report CSVs every hour.');
 }
 function removeTriggers() { ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t)); }
 
