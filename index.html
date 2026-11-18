@@ -1076,7 +1076,11 @@ function jsonp(params,timeoutMs){
     const t=setTimeout(()=>{done();rej(new Error('No answer from Google in time — check the Web App URL / deployment.'))},timeoutMs||90000);
     function done(){clearTimeout(t);try{delete window[cb]}catch(e){window[cb]=undefined}s.remove()}
     window[cb]=d=>{done();d&&d.ok?res(d):rej(new Error((d&&d.error)||'Bad answer from Google'))};
-    s.onerror=()=>{done();rej(new Error('Could not reach the Web App URL (is it deployed with access "Anyone"?)'))};
+    s.onerror=async()=>{done(); // script tag blocked (browser privacy settings / Google error page) -> try a normal request
+      try{const u=CLOUD.url.trim()+(CLOUD.url.includes('?')?'&':'?')+Object.entries({...params,token:CLOUD.token}).map(([k,v])=>k+'='+encodeURIComponent(v==null?'':v)).join('&');
+        const r=await fetch(u,{redirect:'follow'});const t=await r.text();let d;try{d=JSON.parse(t)}catch(e){throw new Error('Google answered with a page instead of data: '+t.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,160))}
+        d&&d.ok?res(d):rej(new Error((d&&d.error)||'Bad answer from Google'));
+      }catch(e){rej(new Error(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'Could not reach Google (blocked by this browser or network). Try another browser, or turn off strict tracking prevention for this site.':e.message))}};
     s.src=CLOUD.url.trim()+(CLOUD.url.includes('?')?'&':'?')+q;document.body.appendChild(s);
   });
 }
@@ -1114,8 +1118,21 @@ async function cloudLoad(we,fresh,quiet){
   const st=document.getElementById('cStat');const say=t=>{if(st)st.innerHTML=t};
   say(fresh?'⏳ Pulling fresh from uAttend into Google Sheets… (can take a minute or two)':'⏳ Loading from Google Sheets…');
   try{
-    const today=iso(new Date());
-    const d=await jsonp({action:fresh?'pull':'data',start,end:fresh&&end>today?today:end,account:CLOUD.account},fresh?330000:90000);
+    let pulled=null;
+    if(fresh){
+      await jsonp({action:'pull',start,end,account:CLOUD.account},60000);
+      const t0=Date.now();let st={};
+      while(Date.now()-t0<9*60000){
+        await new Promise(r=>setTimeout(r,10000));
+        st=(await jsonp({action:'status'},60000)).status||{};
+        const sec=Math.round((Date.now()-t0)/1000);
+        say(`⏳ Pulling yesterday + today from uAttend… ${sec}s (usually 2–4 min). You can keep working.`);
+        if(st.state==='done'||st.state==='error')break;
+      }
+      pulled=st.result||['still running — loaded what the Sheet has so far'];
+      say('⏳ Loading from Google Sheets…');
+    }
+    const d=await jsonp({action:'data',start,end,account:CLOUD.account},90000);if(pulled)d.pulled=pulled;
     const data=d.data;const files=cloudFiles(data);
     const res=files.map(f=>label(f)+': '+f.rows.length+' rows — '+cloudMerge(f));
     if(files.length){const last=files.map(f=>f.end).sort((a,b)=>b-a)[0];S.week=iso(weSat(last))}

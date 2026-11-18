@@ -365,6 +365,18 @@ function importDrops() {
   return res;
 }
 
+/* background pull started from the W.E. Report's SYNC button: yesterday + today */
+function pullRecentJob() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'pullRecentJob').forEach(t => ScriptApp.deleteTrigger(t));
+  const st = JSON.parse(P.getProperty('PULL_STATE') || '{}');
+  P.setProperty('PULL_STATE', JSON.stringify({ state: 'running', t: Date.now(), account: st.account || '' }));
+  try {
+    const days = [dayStr_(new Date(Date.now() - 864e5)), dayStr_(new Date())];
+    const done = pullDates_(days, st.account || '');
+    P.setProperty('PULL_STATE', JSON.stringify({ state: 'done', t: Date.now(), result: done }));
+  } catch (e) { P.setProperty('PULL_STATE', JSON.stringify({ state: 'error', t: Date.now(), result: [String(e.message || e)] })); }
+}
+
 /* ================= TRIGGERS ================= */
 function installTriggers() {
   removeTriggers();
@@ -372,7 +384,7 @@ function installTriggers() {
   ScriptApp.newTrigger('importDrops').timeBased().everyHours(1).create();
   const u = ui_(); if (u) u.alert('Installed: pull from uAttend every day ~8 AM (' + Session.getScriptTimeZone() + '), and import dropped/emailed Timecard Report CSVs every hour.');
 }
-function removeTriggers() { ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t)); }
+function removeTriggers() { ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() !== 'pullRecentJob').forEach(t => ScriptApp.deleteTrigger(t)); }
 
 /* ================= WEB APP (feeds the W.E. Report HTML) =================
  * Deploy ▸ New deployment ▸ type "Web app" ▸ Execute as: Me ▸ Who has access: Anyone
@@ -386,12 +398,16 @@ function doGet(e) {
     if (!P.getProperty('WEB_TOKEN') || p.token !== P.getProperty('WEB_TOKEN')) throw new Error('Bad or missing token');
     const act = p.action || 'data';
     if (act === 'pull') {
-      // live pull = yesterday + today only (each day takes ~1-2 min; Google stops a web call at 6 min).
-      // Older days are pulled by the 8 AM job and just read from the Sheet.
-      const today = dayStr_(new Date()), yday = dayStr_(new Date(Date.now() - 864e5));
-      const days = daysBetween_(p.start, p.end || p.start).filter(d => d >= yday && d <= today);
-      const done = days.length ? pullDates_(days, p.account || '') : ['(nothing to pull live — older days come from the daily 8 AM pull)'];
-      out = { ok: true, pulled: done, data: readRange_(p.start, p.end || p.start, p.account) };
+      // start the uAttend pull in the background (a web call can't wait minutes); the page polls 'status'
+      const st = JSON.parse(P.getProperty('PULL_STATE') || '{}');
+      const busy = (st.state === 'queued' || st.state === 'running') && (Date.now() - (st.t || 0)) < 9 * 60000;
+      if (!busy) {
+        P.setProperty('PULL_STATE', JSON.stringify({ state: 'queued', t: Date.now(), account: p.account || '' }));
+        ScriptApp.newTrigger('pullRecentJob').timeBased().after(1000).create();
+      }
+      out = { ok: true, queued: true, status: JSON.parse(P.getProperty('PULL_STATE')) };
+    } else if (act === 'status') {
+      out = { ok: true, status: JSON.parse(P.getProperty('PULL_STATE') || '{}') };
     } else if (act === 'dates') {
       out = { ok: true, dates: listDates_() };
     } else {
