@@ -180,12 +180,13 @@ const isoDay_ = v => { if (!v) return ''; const s = String(v); const m = s.match
 function pullDay_(acct, day) {
   const key = acct.key, stamp = new Date();
   // 1) punch report: who punched that day (and dept / open punches)
-  const users = {}; let page = 0, got = 0, total = 1;
+  const users = {}, deptName = {}; let page = 0, got = 0, total = 1;
   while (got < total && page < 100) {
     const j = call_(key, '/reports/punch', { StartDate: day, EndDate: day, UsePaging: true, PageSize: 500, PageNumber: page });
     const b = j.Body || j; const items = b.PunchReportLineItems || [];
     total = b.Total || items.length; got += items.length; page++;
     items.forEach(it => {
+      if (it.DepartmentCode && it.DepartmentName) deptName[String(it.DepartmentCode).trim().toUpperCase()] = it.DepartmentName;
       if (isoDay_(it.PunchDate || it.InDate) !== day) return;
       const u = users[it.UserId] = users[it.UserId] || { first: it.FirstName || '', last: it.LastName || '', payroll: it.PayrollNumber || '', punches: [] };
       u.punches.push({ dept: it.DepartmentName || it.DepartmentCode || '', tot: hm_(it.Tot), open: !it.OutTime });
@@ -206,15 +207,21 @@ function pullDay_(acct, day) {
       const b = j.Body || j, tc = b.Timecard || b;
       const first = tc.FirstName || b.FirstName || u.first, last = tc.LastName || b.LastName || u.last;
       u.first = first; u.last = last; u.payroll = tc.PayrollNumber || b.PayrollNumber || u.payroll;
+      (tc.DepartmentTransfers || []).forEach(x => { if (x.departmentCode && x.departmentName) deptName[String(x.departmentCode).trim().toUpperCase()] = x.departmentName; });
       (tc.Workdays || []).forEach(w => {
         if (isoDay_(w.Day3 || w.Day2) !== day) return;
         (w.PunchPairs || []).forEach(pp => {
           const code = Number(pp.Paycode);
           if (code === 6 || code === 7) return;               // break / lunch
-          const d = pp.DepartmentName || (u.punches[0] && u.punches[0].dept) || '';
+          const raw = String(pp.DepartmentName || '').trim();   // the API gives the department CODE here (e.g. "05 PRS")
+          const d = deptName[raw.toUpperCase()] || raw || (u.punches[0] && u.punches[0].dept) || '';
           const x = byDept[d] = byDept[d] || { reg: 0, ot1: 0, ot2: 0, regPay: 0, totPay: 0 };
           x.reg += hm_(pp.RegularHours); x.ot1 += hm_(pp.Overtime1Hours); x.ot2 += hm_(pp.Overtime2Hours);
-          x.regPay += num_(pp.RegularGrossPay); x.totPay += num_(pp.TotalGrossPay);
+          // pay per punch: TotalGrossPay is often "0", so add up the pieces
+          const rp = num_(pp.RegularGrossPay), op = num_(pp.Overtime1GrossPay) + num_(pp.Overtime2GrossPay),
+            xp = num_(pp.VacationGrossPay) + num_(pp.HolidayGrossPay) + num_(pp.SickGrossPay) + num_(pp.OtherGrossPay);
+          x.regPay += rp; x.totPay += Math.max(rp + op + xp, num_(pp.TotalGrossPay));
+          x.o1p = (x.o1p || 0) + num_(pp.Overtime1GrossPay); x.o2p = (x.o2p || 0) + num_(pp.Overtime2GrossPay);
           ok = true;
         });
       });
@@ -227,7 +234,7 @@ function pullDay_(acct, day) {
       const otPay = Math.max(0, x.totPay - x.regPay), otH = x.ot1 + x.ot2;
       const flag = [anyOpen ? 'OPEN PUNCH' : '', !ok ? (j && j._error ? 'TIMECARD ERROR ' + j._error : 'PUNCH ONLY - NO PAY') : ''].filter(Boolean).join('; ');
       rows.push([day, day, acct.name, (u.first + ' ' + u.last).trim(), String(u.payroll || ''), u.first, u.last, d,
-        r2_(x.reg), r2_(x.regPay), r2_(x.ot1), r2_(otH ? otPay * x.ot1 / otH : 0), r2_(x.ot2), r2_(otH ? otPay * x.ot2 / otH : 0),
+        r2_(x.reg), r2_(x.regPay), r2_(x.ot1), r2_(x.o1p || (otH ? otPay * x.ot1 / otH : 0)), r2_(x.ot2), r2_(x.o2p || (otH ? otPay * x.ot2 / otH : 0)),
         r2_(tot), r2_(x.totPay), 'API', stamp, flag]);
     });
   });
