@@ -377,6 +377,70 @@ function pullRecentJob() {
   } catch (e) { P.setProperty('PULL_STATE', JSON.stringify({ state: 'error', t: Date.now(), result: [String(e.message || e)] })); }
 }
 
+
+/* ================= LIVE PUNCH BOARD (Punch Report → PUNCHES tab) ================= */
+const PTAB = 'PUNCHES';
+const PHEAD = ['DATE', 'ACCOUNT', 'PUNCH ID', 'USER ID', 'NAME', 'PAYROLL ID', 'DEPT CODE', 'DEPARTMENT', 'SITE',
+  'IN DATE', 'IN TIME', 'OUT DATE', 'OUT TIME', 'TOTAL', 'IN METHOD', 'OUT METHOD', 'IN CLOCK', 'OUT CLOCK', 'PULLED AT'];
+function punchSheet_() {
+  const ss = ss_(); let sh = ss.getSheetByName(PTAB);
+  if (!sh) { sh = ss.insertSheet(PTAB); }
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, PHEAD.length).setValues([PHEAD]).setFontWeight('bold').setBackground('#351c15').setFontColor('#ffffff');
+    sh.setFrozenRows(1); sh.getRange('A:A').setNumberFormat('@'); sh.getRange('J:M').setNumberFormat('@');
+  }
+  return sh;
+}
+const hhmm_ = t => { const m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : ''; };
+/** Pull the Punch Report for these days (all accounts) and replace those days in the PUNCHES tab */
+function pullPunches_(days) {
+  const stamp = new Date(), out = [];
+  accounts_().forEach(a => days.forEach(day => {
+    try {
+      const rows = []; let page = 0, got = 0, total = 1;
+      while (got < total && page < 100) {
+        const j = call_(a.key, '/reports/punch', { StartDate: day, EndDate: day, UsePaging: true, PageSize: 500, PageNumber: page });
+        const b = j.Body || j, items = b.PunchReportLineItems || [];
+        total = b.Total || items.length; got += items.length; page++;
+        items.forEach(it => {
+          const dept = String(it.DepartmentName || it.DepartmentCode || '').trim(), sm = dept.match(/^(\d{2})/);
+          rows.push([isoDay_(it.PunchDate || it.InDate) || day, a.name, String(it.Id || ''), String(it.UserId || ''),
+            (String(it.FirstName || '').trim() + ' ' + String(it.LastName || '').trim()).replace(/\s+/g, ' '), String(it.PayrollNumber || ''),
+            String(it.DepartmentCode || ''), dept, sm ? sm[1] : '', isoDay_(it.InDate), hhmm_(it.InTime), isoDay_(it.OutDate), hhmm_(it.OutTime),
+            r2_(hm_(it.Tot)), it.InPunchMethod || '', it.OutPunchMethod || '', it.InPunchLocation || '', it.OutPunchLocation || '', stamp]);
+        });
+        if (!items.length) break;
+      }
+      const sh = punchSheet_(), last = sh.getLastRow();
+      if (last > 1) {
+        const k = sh.getRange(2, 1, last - 1, 2).getDisplayValues(), kill = [];
+        k.forEach((r, i) => { if (r[0] === day && r[1].toUpperCase() === a.name.toUpperCase()) kill.push(i + 2); });
+        for (let i = kill.length - 1; i >= 0;) { let j = i; while (j > 0 && kill[j - 1] === kill[j] - 1) j--; sh.deleteRows(kill[j], kill[i] - kill[j] + 1); i = j - 1; }
+      }
+      if (rows.length) { const st = sh.getLastRow() + 1; sh.getRange(st, 1, rows.length, PHEAD.length).setNumberFormat('@').setValues(rows); }
+      out.push(a.name + ' ' + day + ': ' + rows.length + ' punches');
+    } catch (e) { out.push(a.name + ' ' + day + ': ERROR ' + e.message); log_('PUNCH ERROR', a.name + ' ' + day + ' ' + e.message); }
+  }));
+  P.setProperty('PUNCH_PULLED', JSON.stringify({ t: Date.now(), result: out }));
+  return out;
+}
+/** every 15 min: yesterday + today (yesterday catches overnight shifts) */
+function pullPunchesNow() { return pullPunches_([dayStr_(new Date(Date.now() - 864e5)), dayStr_(new Date())]); }
+function installPunchTrigger() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'pullPunchesNow').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('pullPunchesNow').timeBased().everyMinutes(15).create();
+  console.log(pullPunchesNow().join('\n'));
+}
+function readPunches_(start, end) {
+  const sh = punchSheet_(), last = sh.getLastRow();
+  if (last < 2) return { head: PHEAD.slice(0, 18), rows: [] };
+  const k = sh.getRange(2, 1, last - 1, 1).getDisplayValues();
+  let lo = -1, hi = -1; k.forEach((r, i) => { if (r[0] >= start && r[0] <= end) { if (lo < 0) lo = i; hi = i; } });
+  if (lo < 0) return { head: PHEAD.slice(0, 18), rows: [] };
+  const rows = sh.getRange(lo + 2, 1, hi - lo + 1, 18).getDisplayValues().filter(r => r[0] >= start && r[0] <= end);
+  return { head: PHEAD.slice(0, 18), rows: rows, pulled: JSON.parse(P.getProperty('PUNCH_PULLED') || '{}') };
+}
+
 /* ================= TRIGGERS ================= */
 function installTriggers() {
   removeTriggers();
@@ -384,7 +448,7 @@ function installTriggers() {
   ScriptApp.newTrigger('importDrops').timeBased().everyHours(1).create();
   const u = ui_(); if (u) u.alert('Installed: pull from uAttend every day ~8 AM (' + Session.getScriptTimeZone() + '), and import dropped/emailed Timecard Report CSVs every hour.');
 }
-function removeTriggers() { ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() !== 'pullRecentJob').forEach(t => ScriptApp.deleteTrigger(t)); }
+function removeTriggers() { ScriptApp.getProjectTriggers().filter(t => ['pullRecentJob', 'pullPunchesNow'].indexOf(t.getHandlerFunction()) < 0).forEach(t => ScriptApp.deleteTrigger(t)); }
 
 /* ================= WEB APP (feeds the W.E. Report HTML) =================
  * Deploy ▸ New deployment ▸ type "Web app" ▸ Execute as: Me ▸ Who has access: Anyone
@@ -406,6 +470,12 @@ function doGet(e) {
         ScriptApp.newTrigger('pullRecentJob').timeBased().after(1000).create();
       }
       out = { ok: true, queued: true, status: JSON.parse(P.getProperty('PULL_STATE')) };
+    } else if (act === 'punches') {
+      out = { ok: true, data: readPunches_(p.start, p.end || p.start) };
+    } else if (act === 'pullpunches') {
+      const today = dayStr_(new Date()), yday = dayStr_(new Date(Date.now() - 864e5));
+      const days = daysBetween_(p.start || yday, p.end || today).filter(d => d >= yday && d <= today);
+      out = { ok: true, pulled: pullPunches_(days.length ? days : [today]), data: readPunches_(p.start || yday, p.end || today) };
     } else if (act === 'status') {
       out = { ok: true, status: JSON.parse(P.getProperty('PULL_STATE') || '{}') };
     } else if (act === 'dates') {
