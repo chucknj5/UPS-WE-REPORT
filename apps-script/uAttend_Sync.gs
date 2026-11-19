@@ -279,6 +279,7 @@ function pullYesterday() {
   const back = Math.max(1, parseInt(P.getProperty('PULL_BACK_DAYS') || '2', 10));
   const days = []; for (let i = back; i >= 1; i--) days.push(dayStr_(new Date(Date.now() - i * 864e5)));
   const res = pullDates_(days);
+  pruneOld_();
   try { ss_().toast(res.join('\n'), 'uAttend pull', 10); } catch (e) {}
 }
 function pullPrompt() {
@@ -441,11 +442,39 @@ function readPunches_(start, end) {
   return { head: PHEAD.slice(0, 18), rows: rows, pulled: JSON.parse(P.getProperty('PUNCH_PULLED') || '{}') };
 }
 
+/** every 30 min: today's timecards (replaces today's rows), then keep only the current week */
+function pullRecent() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return;            // last run still going: skip
+  try { pullDates_([dayStr_(new Date())]); pruneOld_(); }
+  finally { lock.releaseLock(); }
+}
+/** keep only the current week (Sun-Sat) in TIMECARD; trim LOG to its last 500 rows. Optional script property KEEP_EXTRA_DAYS keeps older days a bit longer. */
+function pruneOld_() {
+  const sh = ensureSheets_(), last = sh.getLastRow();
+  const tz = Session.getScriptTimeZone(), now = new Date();
+  const dow = Number(Utilities.formatDate(now, tz, 'u')) % 7;            // Sun = 0
+  const extra = parseInt(P.getProperty('KEEP_EXTRA_DAYS') || '0', 10);
+  const cutoff = dayStr_(new Date(now.getTime() - (dow + extra) * 864e5));
+  if (last > 1) {
+    const d = sh.getRange(2, 1, last - 1, 1).getDisplayValues(), kill = [];
+    d.forEach((r, i) => { if (r[0] && r[0] < cutoff) kill.push(i + 2); });
+    for (let i = kill.length - 1; i >= 0;) {
+      let j = i; while (j > 0 && kill[j - 1] === kill[j] - 1) j--;
+      sh.deleteRows(kill[j], kill[i] - kill[j] + 1); i = j - 1;
+    }
+    if (kill.length) log_('PRUNE', kill.length + ' rows older than ' + cutoff + ' removed');
+  }
+  const lg = ss_().getSheetByName(LOGTAB);
+  if (lg && lg.getLastRow() > 500) lg.deleteRows(2, lg.getLastRow() - 500);
+}
+
 /* ================= TRIGGERS ================= */
 function installTriggers() {
   removeTriggers();
   ScriptApp.newTrigger('pullYesterday').timeBased().everyDays(1).atHour(8).create();
   ScriptApp.newTrigger('importDrops').timeBased().everyHours(1).create();
+  ScriptApp.newTrigger('pullRecent').timeBased().everyMinutes(30).create();
   const u = ui_(); if (u) u.alert('Installed: pull from uAttend every day ~8 AM (' + Session.getScriptTimeZone() + '), and import dropped/emailed Timecard Report CSVs every hour.');
 }
 function removeTriggers() { ScriptApp.getProjectTriggers().filter(t => ['pullRecentJob', 'pullPunchesNow'].indexOf(t.getHandlerFunction()) < 0).forEach(t => ScriptApp.deleteTrigger(t)); }

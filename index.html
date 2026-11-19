@@ -127,6 +127,43 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px
   .tabs{display:none} body{background:#fff} .panel{border:0}
   td input{border:0}
 }
+
+/* main tabs + New Hires */
+#mainTabs{display:flex;gap:4px;background:#2a1610;padding:6px 20px 0;border-bottom:3px solid var(--accent)}
+#mainTabs button{border:0;border-radius:8px 8px 0 0;background:#4a2a20;color:#e9d8c8;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer}
+#mainTabs button.on{background:var(--accent);color:#1a1a1a}
+body:not(.tab-we) #drop,body:not(.tab-we) #files,body:not(.tab-we) #sitebar,body:not(.tab-we) #view{display:none!important}
+body:not(.tab-we) header>:not(h1){display:none!important}
+#viewNH .kpis{margin:18px 0 0}
+#viewNH .kpi .s{font-size:12px;color:var(--mute);margin-top:2px}
+#viewNH .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:18px;margin:18px 0}
+#viewNH .grid1{display:grid;grid-template-columns:1fr;gap:18px;margin:18px 0}
+#viewNH .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+#viewNH .card h2{margin:0 0 4px;font-size:15px}
+#viewNH p.sub{margin:0 0 12px;font-size:12px;color:var(--mute)}
+#viewNH .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-bottom:10px}
+#viewNH .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+#viewNH .editbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#viewNH .editbar button{background:var(--accent);border:0;color:#1a1a1a}
+#viewNH .editbar button.sec{background:#fff;border:1px solid var(--line);color:var(--ink)}
+#viewNH .nhf{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0}
+#viewNH .nhf select,#viewNH .nhf input[type=date]{padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink)}
+#viewNH .nhf label{font-size:12px;color:var(--mute);display:flex;align-items:center;gap:6px}
+#viewNH .rng button{padding:6px 10px;font-size:12px}
+#viewNH .chwrap{overflow-x:auto}
+#viewNH .reqstrip{overflow-x:auto;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+#viewNH .reqstrip h3{font-size:12px;margin:0 0 6px;color:var(--mute);font-weight:600;text-transform:uppercase}
+#viewNH .reqstrip table{font-size:12px;width:auto}
+#viewNH .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
+#viewNH .reqstrip td{border:0;border-bottom:1px solid var(--line)}
+#viewNH .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
+#viewNH .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewNH .note{font-size:12px;color:var(--mute);margin-top:10px}
+#viewNH .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
+#viewNH .rate-lo{color:var(--bad);font-weight:700}
+#viewNH td.n,#viewNH th.n{text-align:right}
+#nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
+#viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
 </style>
 </head>
 <body>
@@ -144,6 +181,7 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px
   <button id="btnClear">CLEAR</button>
   <button class="pri" id="btnXlsx">EXPORT EXCEL</button>
 </header>
+<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="pr">PUNCH REPORT</button></nav>
 <main>
   <div id="drop"><b>DROP TIMECARD EXPORT(S) HERE</b><br>UPS Time Clock CSV / XLSX — one per day, or drop the whole week at once<br><small>or click to browse</small></div>
   <input type="file" id="fi" multiple accept=".csv,.xlsx,.xls,.json" hidden>
@@ -151,12 +189,52 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px
   <div class="sitebar" id="sitebar"></div>
   <div id="view"></div>
   <div id="dlg"></div>
+<div id="viewNH" style="display:none">
+  <div class="card">
+    <h2>New Hires — Started vs No Show</h2>
+    <p class="sub">Pulled from the SmartSuite New Hires table. Day and week charts, filtered by site and shift. Starts empty: click Sync, or drop a SmartSuite CSV / JSON export on this tab.</p>
+    <div class="editbar">
+      <button id="nhSync">⟳ Sync from SmartSuite</button>
+      <button id="nhGear" class="sec">⚙ Connection</button>
+      <button id="nhSample" class="sec">Load sample data</button>
+      <span id="nhStatus" style="font-size:13px;color:var(--mute)"></span>
+    </div>
+    <div class="nhf">
+      <label>Site <select id="nhSite"></select></label>
+      <label>Shift <select id="nhShift"></select></label>
+      <label>From <input type="date" id="nhFrom"></label>
+      <label>To <input type="date" id="nhTo"></label>
+      <span class="rng" id="nhRng"><button data-w="2">2 wks</button> <button data-w="4">4 wks</button> <button data-w="8">8 wks</button> <button data-w="13">13 wks</button> <button data-w="0">All</button></span>
+      <label><input type="checkbox" id="nhSched"> Show scheduled</label>
+    </div>
+    <div id="nhBanner"></div>
+    <div id="nhConn" class="setup" style="display:none;margin-top:14px">
+      <h2 style="font-size:14px">Connection</h2>
+      <p class="sub">The Apps Script web app that reads the SmartSuite New Hires table (your SmartSuite token stays inside Google). Saved in this browser.</p>
+      <label>Apps Script URL (ends in /exec)<input id="nhUrl"></label>
+      <label>Token<input id="nhTokIn" type="password"></label>
+    </div>
+  </div>
+  <div class="kpis" id="nhKpis" style="margin-top:18px"></div>
+  <div class="grid1">
+    <div class="card"><h2>By Day</h2><p class="sub" id="nhDaySub"></p><div class="legend" id="nhLegD"></div><div class="chwrap" id="nhDay"></div><div class="reqstrip" id="nhReqD"></div></div>
+    <div class="card"><h2>By Week (week ending Saturday)</h2><p class="sub" id="nhWeekSub"></p><div class="legend" id="nhLegW"></div><div class="chwrap" id="nhWeek"></div><div class="reqstrip" id="nhReqW"></div></div>
+  </div>
+  <div class="grid">
+    <div class="card"><h2>By Site</h2><div class="scroll" style="max-height:380px"><table id="nhTSite"></table></div></div>
+    <div class="card"><h2>By Shift</h2><div class="scroll" style="max-height:380px"><table id="nhTShift"></table></div></div>
+  </div>
+  <div class="card"><h2>Records</h2><p class="sub" id="nhDetSub"></p><div class="scroll"><table id="nhTDet"></table></div>
+    <div class="note">Grouping: Started = status STARTED · No Show = No Show I / II / III / DNU / Missing ID · Scheduled = Scheduled to Start · Other = Sent Home, DNR, Bad BG, Already Active. Show rate = Started ÷ (Started + No Show). Only title (site and name), start date, shift, status and type are loaded; SS #, phone and ID files are never read.</div></div>
+</div>
+<div id="viewPR" style="display:none"><iframe id="prFrame" title="UPS Punch Report"></iframe></div>
+<div id="nhTip"></div>
 </main>
 
 <script>
 const BUCKETS=['SORT','PROCESSING','TRANSFER','TRANSPORTATION','ROADIES','OFFICE','JANITOR/OTHER'];
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const SITE_NAMES={'06':'UPS OH'};
+const SITE_NAMES={'06':'UPS OH','101.5':'ROADIE'};
 const S={files:[],inputs:{},sites:new Set(),seen:new Set(),week:null,tab:null};
 // inputs[key][bucket] = {hs,vol,inv}; inputs[key]._notes
 
@@ -174,7 +252,7 @@ function bucketOf(dept){
 const DEF_ALIAS={'ORLANDO JD SUPERVISOR':'06'};
 let ALIAS=(()=>{try{return Object.assign({},DEF_ALIAS,JSON.parse(localStorage.getItem('we_site_alias')||'{}'))}catch(e){return{...DEF_ALIAS}}})();
 const saveAlias=()=>{try{localStorage.setItem('we_site_alias',JSON.stringify(ALIAS))}catch(e){}};
-const siteOf=d=>{const t=String(d||'').trim(),m=t.match(/^(\d{2})/);return m?m[1]:(ALIAS[t.toUpperCase()]||'??')};
+const siteOf=d=>{const t=String(d||'').trim(),m=t.match(/^(\d{2,3}\.\d+|\d{2})/);return m?m[1]:(ALIAS[t.toUpperCase()]||'??')};
 function resite(){S.files.forEach(f=>f.rows.forEach(r=>r.site=siteOf(r.dept)))}
 const num=v=>{if(v==null||v==='')return 0;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isNaN(n)?0:n};
 const f2=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -192,7 +270,7 @@ drop.onclick=()=>fi.click();
 fi.onchange=e=>{load([...e.target.files]);fi.value=''};
 ['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
 ['dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();if(t==='drop'||e.target===drop)drop.classList.remove('over')}));
-document.addEventListener('drop',e=>load([...e.dataTransfer.files]));
+document.addEventListener('drop',e=>{const fs=[...e.dataTransfer.files];if(document.body.classList.contains('tab-nh')){if(fs[0]&&window.NHTAB)NHTAB.loadFile(fs[0]);return}if(document.body.classList.contains('tab-we'))load(fs)});
 
 async function load(list){
   for(const f of list){
@@ -1003,7 +1081,7 @@ document.getElementById('btnXlsx').onclick=async()=>{
   }
   wb.views=[{activeTab:wb.worksheets.length-1}];
   const buf=await wb.xlsx.writeBuffer();
-  const code=(t.replace(/^UPS\s*/i,'').replace(/^MULTI-SITE.*/,'MULTI')||siteLbl()).replace(/[^\w]/g,'');
+  const code=(t.replace(/^UPS\s*/i,'').replace(/^MULTI-SITE.*/,'MULTI')||siteLbl()).replace(/[^\w.]/g,'');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=`${code}_W.E._${mdy(W.sat)}.xlsx`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
 };
@@ -1026,6 +1104,7 @@ function restore(d,merge){
   (d.sites||[]).forEach(x=>S.sites.add(x));(d.seen||[]).forEach(x=>S.seen.add(x));
   if(!merge){S.week=d.week||S.week;S.tab=d.tab||S.tab}
   if(d.cfg&&!merge){const c=d.cfg;if(c.RATES){RATES=c.RATES;saveRates()}if(c.SAL){SAL=c.SAL;saveSal()}if(c.FEE){FEE=c.FEE;saveFee()}if(c.TAX){TAX=c.TAX;saveTax()}if(c.ALIAS){ALIAS=c.ALIAS;saveAlias();resite()}}
+  resite();
 }
 /* shared save on Netlify: everyone on the link sees the same saved days */
 const ONLINE=/^https?:/.test(location.protocol)&&!/^(localhost|127\.)/.test(location.hostname);
@@ -1180,6 +1259,317 @@ document.getElementById('btnSync').onclick=()=>{
   if(ONLINE){try{const c=await (await fetch('/api/config',{cache:'no-store'})).json();if(c&&c.url&&c.token){CLOUD.url=c.url;CLOUD.token=c.token;if(!CLOUD.account)CLOUD.account=c.account||'';CLOUD.builtin=true;saveCloud()}}catch(e){}}
   if(await loadRemote())render();
   if(CLOUD.auto&&CLOUD.url&&CLOUD.token)cloudLoad(iso(weSat(new Date())),false,true);
+})();
+/* ===================== NEW HIRES TAB (from UPS Peak dashboard) ===================== */
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NH_EMBED={nhUrl:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb3o9sAWy24vBNgn2t5UWNc5_Yk_ZHn6cN3Y4CGOS_2DtEw/exec',nhTok:'ups-K3XJWzFtm6iSQWjP8NhbqZm_'};
+const store={get:k=>{let v=null;try{v=localStorage.getItem('we_'+k)}catch(e){}return v||NH_EMBED[k]||null},set:(k,v)=>{try{localStorage.setItem('we_'+k,v)}catch(e){}}};
+function parseCSV(t){
+  const out=[];let row=[],cur='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c=='"'){if(t[i+1]=='"'){cur+='"';i++}else q=false}else cur+=c}
+    else if(c=='"')q=true; else if(c==','){row.push(cur);cur=''}
+    else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;row.push(cur);out.push(row);row=[];cur=''}
+    else cur+=c}
+  if(cur||row.length){row.push(cur);out.push(row)}
+  return out;
+}
+/* ===================== NEW HIRES TAB ===================== */
+const NH_DEF={acct:'sz7b6s9h',table:'65a6a9106d8f8910fdeae362'};
+const NH_MAPS={
+ status:{'uSp4s':'SCHEDULED TO START','complete':'STARTED','eFl2q':'Sent Home (Staffing)','A8XvB':'Already Active (Not New)','wms09':'DNR','e1314c5a-6847-49f2-a2fa-9219f4356bd2':'Sent Home (Late)','ready_for_review':'No Show I','JAK5w':'No Show II','5QZkV':'Now Show III','cu3Pl':'No Show (DNU)','zYFmY':'Bad BG','FB983':'NO SHOW MISSING ID'},
+ shift:{'6AMMH':'AM','JtRgf':'PM','ee4wq':'ARCHIVE','6TYco':'AM Weekend','T5qRr':'MID Weekend'},
+ pick:{'oVDDa':'1.0','eSCLa':'3.0','GSabQ':'4.0','HsUqk':'5.0','ckeN9':'6.0','7VOlP':'7.0','NelWC':'10.0','6Z3uU':'12.0','HibDk':'13.0','vxLWm':'15.0','9y1Pv':'18.0','DzhLI':'19.0','8EpBU':'23.0','19Mv8':'26.0','OdR8b':'26.5','StVhF':'5.5','mi7DE':'13.5','2VxBq':'101.5'},
+ type:{'UxiyX':'New Hire','DME0Q':'Returner'},
+ ss:{'8dLlN':'STARTED','KsiUY':'NO SHOW'}
+};
+const NH_SITES={'3.0':'Missouri','4.0':'New York','5.0':'South New Jersey','6.0':'Ohio','7.0':'Florida','10.0':'Illinois','12.0':'Washington','13.0':'Atlanta','15.0':'North Carolina','18.0':'Tennessee','19.0':'North Texas','23.0':'North New Jersey','26.0':'South Carolina','101.5':'roadies'};
+const NH_SLUG={status:'status',shift:'sda8290dd7',pick:'sc418c1d53',type:'s0d3ee7089',ss:'sd0332b1b4'};
+const NH={rows:[],req:[],reqMsg:'',site:'',shift:'',from:'',to:'',sched:false,sample:false};
+const NH_COL={started:'#2a78d6',noshow:'#eb6834',sched:'#a8a6a0',req:'#2a9d8f'};
+const isoToday=()=>new Date().toLocaleDateString('en-CA');
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
+const mdOf=iso=>iso.slice(5,7)+'/'+iso.slice(8,10);
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const dowOf=iso=>DOW[new Date(iso+'T00:00:00Z').getUTCDay()];
+const pct=(a,b)=>b?Math.round(a/b*1000)/10:null;
+
+function nhLab(m,v){
+  if(v==null||v==='')return '';
+  if(Array.isArray(v))v=v[0];
+  if(v&&typeof v==='object')v=v.label!==undefined?v.label:(v.value!==undefined?v.value:'');
+  return (m&&m[v])||String(v);
+}
+function nhGroup(st,ss){
+  const s=(st||'').toLowerCase();
+  if(/no\s*show|now\s*show/.test(s))return 'No Show';
+  if(/^started/.test(s))return 'Started';
+  if(/scheduled/.test(s))return 'Scheduled';
+  if(s)return 'Other';
+  const t=(ss||'').toLowerCase();
+  if(/no\s*show/.test(t))return 'No Show';
+  if(/started/.test(t))return 'Started';
+  return 'Other';
+}
+function nhSiteOf(title,pick){
+  const m=title.match(/^(Site\s+[\d.]+\s*-\s*.+?)\s*-\s/);
+  if(m)return {site:m[1].trim(),name:title.slice(m[0].length).trim()};
+  return {site:pick?('Site '+pick+(NH_SITES[pick]?' - '+NH_SITES[pick]:'')):'Unassigned',name:title.replace(/^\s*-\s*/,'').trim()};
+}
+const RQ_SHIFT={ocNI5:'AM',b4qjw:'PM','7YQzN':'MID',CkISn:'20'};
+const RQ_PICK={MO8Ew:'1.0','5HZJu':'3.0','86k4U':'4.0',NAr31:'5.0',lj8Gw:'6.0',B3wU1:'7.0',s0Chb:'10.0',T7oY0:'12.0',cbA4G:'13.0',QJQJY:'15.0',PW3WI:'18.0',WV0Gp:'19.0',oLeKr:'23.0',Npb3z:'26.0',wJaJi:'26.5','0DOJI':'13.5',HwGDy:'101.5'};
+const nhBaseShift=s=>String(s||'').replace(/\s*Weekend$/i,'').trim();
+function nhReqNorm(x){
+  const d=x.d&&x.d.date?String(x.d.date).slice(0,10):'';
+  const t=String(x.title||'');
+  const m=t.match(/^(Site\s+[\d.]+\s*-\s*[^-]+?)\s*-\s*[A-Za-z]{3}\s+\d/);
+  const pk=RQ_PICK[x.pick]||'';
+  const site=m?m[1].trim():(pk?('Site '+pk+(NH_SITES[pk]?' - '+NH_SITES[pk]:'')):'Unassigned');
+  return {date:d,week:d?weekEnd(d):'',site,shift:RQ_SHIFT[x.shift]||String(x.shift||''),total:Number(x.total)||0};
+}
+function nhReqRows(){return NH.req.filter(r=>r.week&&(!NH.site||siteNum(r.site)===siteNum(NH.site))&&(!NH.shift||r.shift===nhBaseShift(NH.shift)))}
+function nhReqStrip(el,weeks,gw,withStarted){
+  if(!NH.req.length){el.innerHTML=NH.sample?'':'<div class="note">'+esc(NH.reqMsg||'Requests not loaded yet — click Sync from SmartSuite.')+'</div>';return}
+  const rq={};nhReqRows().forEach(r=>{rq[r.week]=(rq[r.week]||0)+r.total});
+  let h='<h3>Total requested for the week</h3><table><tr><th>Week ending</th>'+weeks.map(w=>`<th>${mdOf(w)}</th>`).join('')+'</tr>';
+  h+='<tr><td><b>Requested</b></td>'+weeks.map(w=>`<td><b>${(rq[w]||0).toLocaleString()}</b></td>`).join('')+'</tr>';
+  if(withStarted){
+    h+='<tr><td>Started</td>'+weeks.map(w=>`<td>${gw(w).Started}</td>`).join('')+'</tr>';
+    h+='<tr><td>Fill rate</td>'+weeks.map(w=>{const f=rq[w]?pct(gw(w).Started,rq[w]):null;return `<td>${f==null?'—':f+'%'}</td>`}).join('')+'</tr>';
+  }
+  el.innerHTML=h+'</table>';
+}
+const siteNum=x=>{const m=String(x).match(/Site\s+([\d.]+)/);return m?parseFloat(m[1]):9999};
+function nhSlim(x){return {title:x.title,s87d5a2ff3:x.s87d5a2ff3,sda8290dd7:x.sda8290dd7,status:x.status,sc418c1d53:x.sc418c1d53,s0d3ee7089:x.s0d3ee7089,sd0332b1b4:x.sd0332b1b4}}
+function nhNorm(r,maps){
+  maps=maps||NH_MAPS;
+  const dv=r.s87d5a2ff3, dd=dv&&(dv.date||(dv.from_date&&dv.from_date.date));
+  const date=dd?String(dd).slice(0,10):'';
+  const stv=r.status&&typeof r.status==='object'&&!Array.isArray(r.status)&&r.status.value!==undefined&&r.status.label===undefined?r.status.value:r.status;
+  const status=nhLab(maps.status,stv), ss=nhLab(maps.ss,r.sd0332b1b4);
+  const so=nhSiteOf(String(r.title||''),nhLab(maps.pick,r.sc418c1d53));
+  return {date,week:date?weekEnd(date):'',site:so.site,name:so.name,shift:nhLab(maps.shift,r.sda8290dd7)||'(none)',status:status||ss,group:nhGroup(status,ss),type:nhLab(maps.type,r.s0d3ee7089)};
+}
+function nhMapsFrom(structure){
+  const maps={};Object.keys(NH_MAPS).forEach(k=>maps[k]=Object.assign({},NH_MAPS[k]));
+  (structure||[]).forEach(f=>{
+    for(const k in NH_SLUG){ if(f.slug===NH_SLUG[k]&&f.params&&Array.isArray(f.params.choices)){f.params.choices.forEach(c=>{maps[k][c.value]=String(c.label).trim()})} }
+  });
+  return maps;
+}
+
+/* ---- loading ---- */
+function nhSet(rows,sample){
+  NH.rows=rows.filter(r=>r.date);NH.sample=!!sample;
+  NH.site='';NH.shift='';
+  const t=isoToday(); let from=addDays(t,-55);
+  if(!NH.rows.some(r=>r.date>=from&&r.date<=t)){from='';NH.to=''}else NH.to=t;
+  NH.from=from;
+  nhFill();nhRender();
+}
+function nhStatusMsg(t){$('nhStatus').textContent=t}
+function parseDateLoose(v){
+  v=String(v||'').trim();if(!v)return '';
+  v=v.split(/\s+-\s+|\s+to\s+/)[0];
+  if(/^\d{4}-\d{2}-\d{2}/.test(v))return v.slice(0,10);
+  const d=new Date(v);if(isNaN(d))return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function nhFromCSV(text){
+  const rows=parseCSV(text);
+  const hi=rows.findIndex(r=>r.some(c=>/^title$/i.test(c.trim())));
+  if(hi<0)throw new Error('No Title column found');
+  const h=rows[hi].map(x=>x.trim().toLowerCase());
+  const ix=(...n)=>{for(const a of n){const i=h.indexOf(a);if(i>=0)return i}return -1};
+  const iT=ix('title'),iD=ix('start date'),iS=ix('shift'),iSt=ix('status (restored)','status'),iP=ix('pick site'),iTy=ix('type of associate'),iSS=ix('single select');
+  if(iD<0)throw new Error('No "Start Date" column found');
+  return rows.slice(hi+1).filter(r=>(r[iT]||'').trim()).map(r=>{
+    const status=(iSt>=0?r[iSt]:'')||'',ss=(iSS>=0?r[iSS]:'')||'';
+    const so=nhSiteOf((r[iT]||'').trim(),iP>=0?(r[iP]||'').trim():'');
+    const date=parseDateLoose(r[iD]);
+    return {date,week:date?weekEnd(date):'',site:so.site,name:so.name,shift:(iS>=0&&(r[iS]||'').trim())||'(none)',status:status.trim()||ss.trim(),group:nhGroup(status,ss),type:iTy>=0?(r[iTy]||'').trim():''};
+  });
+}
+async function nhLoadFile(f){
+  try{
+    const t=await f.text();let rows;
+    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(t)){
+      const j=JSON.parse(t);const items=Array.isArray(j)?j:(j.items||[]);
+      rows=items.map(x=>nhNorm(nhSlim(x)));
+    }else rows=nhFromCSV(t);
+    nhSet(rows,false);nhStatusMsg(`Loaded ${f.name} · ${NH.rows.length} records`);
+  }catch(e){alert('Could not read file: '+e.message)}
+}
+
+async function nhSync(){
+  const btn=$('nhSync');btn.disabled=true;btn.textContent='Syncing…';
+  const su=store.get('nhUrl'),stok=store.get('nhTok')||'';
+  let got=null;const errs=[];
+  if(!su)errs.push('Set the Apps Script URL under ⚙ Connection');
+  else{
+    const call=async a=>{const r=await fetch(su+(su.includes('?')?'&':'?')+'action='+a+'&token='+encodeURIComponent(stok),{cache:'no-store'});const j=await r.json();if(j.error)throw new Error(j.error);return j};
+    try{const j=await call('newhires');got={items:j.items||[],maps:NH_MAPS}}
+    catch(e){errs.push('Apps Script: '+(e instanceof TypeError?'could not reach the web app':e.message))}
+    if(got){try{const j2=await call('requests');NH.req=(j2.items||[]).map(nhReqNorm);NH.reqMsg=''}
+      catch(e){NH.req=[];NH.reqMsg='Requests: '+(e instanceof TypeError?'could not reach the web app':e.message)}}
+  }
+  btn.disabled=false;btn.textContent='⟳ Sync from SmartSuite';
+  if(got){nhSet(got.items.map(x=>nhNorm(x,got.maps)),false);nhStatusMsg(`Synced ${new Date().toLocaleTimeString()} · ${NH.rows.length} records · ${NH.req.length} requests`)}
+  else{nhStatusMsg(errs.join(' | '));$('nhConn').style.display=''}
+}
+/* sample data (clearly flagged) */
+function nhSampleData(){
+  let seed=7;const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296};
+  const sites=['Site 5.0 - South New Jersey','Site 6.0 - Ohio','Site 7.0 - Florida','Site 18.0 - Tennessee','Site 23.0 - North New Jersey','Site 15.0 - North Carolina'];
+  const shifts=['AM','PM','MID Weekend'];const out=[];const t=isoToday();
+  for(let d=-90;d<=6;d++){
+    const day=addDays(t,d);const dow=new Date(day+'T00:00:00Z').getUTCDay();
+    sites.forEach(si=>{
+      const n=Math.round((dow===0||dow===6?1:4)*rnd()*2);
+      for(let k=0;k<n;k++){
+        const sh=shifts[Math.floor(rnd()*3)],r=rnd();
+        let st=d>0?'SCHEDULED TO START':r<0.62?'STARTED':r<0.88?'No Show I':r<0.94?'NO SHOW MISSING ID':'Sent Home (Late)';
+        out.push({date:day,week:weekEnd(day),site:si,name:'Sample '+(out.length+1),shift:sh,status:st,group:nhGroup(st,''),type:'New Hire'});
+      }
+    });
+  }
+  return out;
+}
+
+/* ---- filters ---- */
+function nhFill(){
+  const sites=[...new Set(NH.rows.map(r=>r.site))].sort((a,b)=>siteNum(a)-siteNum(b)||a.localeCompare(b));
+  const shifts=[...new Set(NH.rows.map(r=>r.shift))].sort();
+  $('nhSite').innerHTML='<option value="">All sites</option>'+sites.map(x=>`<option>${esc(x)}</option>`).join('');
+  $('nhShift').innerHTML='<option value="">All shifts</option>'+shifts.map(x=>`<option>${esc(x)}</option>`).join('');
+  $('nhSite').value=NH.site;$('nhShift').value=NH.shift;$('nhFrom').value=NH.from;$('nhTo').value=NH.to;$('nhSched').checked=NH.sched;
+}
+function nhRows(){return NH.rows.filter(r=>(!NH.site||r.site===NH.site)&&(!NH.shift||r.shift===NH.shift)&&(!NH.from||r.date>=NH.from)&&(!NH.to||r.date<=NH.to))}
+function cnt(rows){const c={Started:0,'No Show':0,Scheduled:0,Other:0};rows.forEach(r=>c[r.group]++);return c}
+
+/* ---- chart ---- */
+const tip=$('nhTip');
+function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x||1)));const f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+function nhChart(el,cats,series,o){
+  if(!cats.length){el.innerHTML='<div class="nhempty">No data in this range.</div>';return}
+  const W=Math.max(el.clientWidth||760,320),L=40,R=10,T=18,B=40,H=260,n=cats.length,k=series.length;
+  const slot=Math.max(o.minSlot,(W-L-R)/n),TW=Math.ceil(L+R+slot*n);
+  const max=Math.max(1,...series.flatMap(s=>s.vals));
+  const step=niceStep(max/4),top=Math.ceil(max/step)*step;
+  const y=v=>T+(H-T-B)*(1-v/top),base=y(0);
+  const bw=Math.max(3,Math.min(24,(slot-8)/k-2)),gw=k*bw+(k-1)*2;
+  let g='';
+  for(let v=0;v<=top+1e-9;v+=step){g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${Number.isInteger(v)?v:v.toFixed(1)}</text>`}
+  const lblStep=Math.max(1,Math.ceil(34/slot));
+  let bars='',hits='',xl='';
+  cats.forEach((c,i)=>{
+    const x0=L+i*slot+(slot-gw)/2;
+    series.forEach((s,j)=>{
+      const v=s.vals[i];if(!v)return;
+      const bx=x0+j*(bw+2),by=y(v),h=base-by,r=Math.min(4,h);
+      bars+=`<path d="M${bx},${base}V${by+r}Q${bx},${by} ${bx+r},${by}H${bx+bw-r}Q${bx+bw},${by} ${bx+bw},${by+r}V${base}Z" fill="${s.color}"/>`;
+      if(slot>=34&&bw>=9)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1f1a14">${v}</text>`;
+    });
+    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1f1a14">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6f675c">${c.sub}</text>`;
+    hits+=`<rect class="hit" data-i="${i}" x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"/>`;
+  });
+  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${o.aria}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#bdb5a8" stroke-width="1"/>${bars}${xl}${hits}</svg>`;
+  const svg=el.firstChild;
+  svg.onmousemove=e=>{
+    const i=e.target.dataset&&e.target.dataset.i;if(i==null){tip.style.display='none';return}
+    const c=cats[+i];
+    tip.innerHTML=`<b>${c.tip}</b><br>`+series.map(s=>`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};margin-right:6px"></span>${s.name}: ${s.vals[+i]}`).join('<br>')+(c.rate!=null?`<br>Show rate: ${c.rate}%`:'')+(c.fill!=null?`<br>Fill rate: ${c.fill}%`:'');
+    tip.style.display='block';tip.style.left=Math.min(e.clientX+14,innerWidth-190)+'px';tip.style.top=(e.clientY+14)+'px';
+  };
+  svg.onmouseleave=()=>{tip.style.display='none'};
+}
+function nhLegend(el,series){el.innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join('')}
+
+function nhRender(){
+  const rows=nhRows(),c=cnt(rows),all=NH.rows.length;
+  $('nhBanner').innerHTML=NH.sample?'<div class="banner">SAMPLE DATA — generated for preview only, not real records. Click Sync or drop an export to replace it.</div>':'';
+  if(!all){
+    $('nhKpis').innerHTML='';
+    ['nhDay','nhWeek'].forEach(i=>$(i).innerHTML='<div class="nhempty">No data yet. Click <b>Sync from SmartSuite</b>, drop a SmartSuite CSV/JSON export on this tab, or <b>Load sample data</b> to preview.</div>');
+    ['nhDaySub','nhWeekSub','nhLegD','nhLegW','nhDetSub'].forEach(i=>$(i).textContent='');
+    ['nhReqD','nhReqW'].forEach(i=>$(i).innerHTML='');
+    ['nhTSite','nhTShift','nhTDet'].forEach(i=>$(i).innerHTML='');
+    return;
+  }
+  const rate=pct(c.Started,c.Started+c['No Show']);
+  const _d0=NH.from||(rows.length?rows.reduce((a,r)=>r.date<a?r.date:a,rows[0].date):''),_d1=NH.to||(rows.length?rows.reduce((a,r)=>r.date>a?r.date:a,rows[0].date):'');
+  const rqIn=(_d0&&_d1)?nhReqRows().filter(r=>r.week>=weekEnd(_d0)&&r.week<=weekEnd(_d1)):[];
+  const rqTot=rqIn.reduce((a,r)=>a+r.total,0),hasReq=NH.req.length>0;
+  const fillAll=hasReq&&rqTot?pct(c.Started,rqTot):null;
+  const k=[['Fill rate',fillAll==null?'—':fillAll+'%',hasReq?`${c.Started.toLocaleString()} started of ${rqTot.toLocaleString()} requested`:'Sync to load requests'],['Requested',hasReq?rqTot.toLocaleString():'—','total requested in range'],['Started',c.Started.toLocaleString(),'vs requested · status STARTED'],['No Shows',c['No Show'].toLocaleString(),'No Show I/II/III/DNU/Missing ID'],['Show rate',rate==null?'—':rate+'%','Started ÷ (Started + No Show)'],['Records in view',rows.length.toLocaleString(),`of ${all.toLocaleString()} loaded`],['Scheduled',c.Scheduled.toLocaleString(),'not yet started'],['Other',c.Other.toLocaleString(),'Sent Home, DNR, Bad BG, Already Active']];
+  $('nhKpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+
+  const mkSeries=(vs,vn,vsch)=>{const s=[{name:'Started',color:NH_COL.started,vals:vs},{name:'No Show',color:NH_COL.noshow,vals:vn}];if(NH.sched)s.push({name:'Scheduled',color:NH_COL.sched,vals:vsch});return s};
+  // by day
+  let dmin=NH.from||(rows[0]&&rows.reduce((a,r)=>r.date<a?r.date:a,rows[0].date)),dmax=NH.to||(rows[0]&&rows.reduce((a,r)=>r.date>a?r.date:a,rows[0].date));
+  let days=[],cap=62,note='';
+  if(rows.length){for(let d=dmin;d<=dmax;d=addDays(d,1))days.push(d)}
+  if(days.length>cap){days=days.slice(-cap);note=` Showing the last ${cap} days of the range.`}
+  const byD={};rows.forEach(r=>{(byD[r.date]=byD[r.date]||cnt([]))[r.group]++});
+  const gd=d=>byD[d]||cnt([]);
+  const dS=mkSeries(days.map(d=>gd(d).Started),days.map(d=>gd(d)['No Show']),days.map(d=>gd(d).Scheduled));
+  nhChart($('nhDay'),days.map(d=>{const x=gd(d);return {label:mdOf(d),sub:dowOf(d),tip:dowOf(d)+' '+d,rate:pct(x.Started,x.Started+x['No Show'])}}),dS,{minSlot:30,aria:'Started versus no shows by day'});
+  nhReqStrip($('nhReqD'),[...new Set(days.map(weekEnd))],null,false);
+  nhLegend($('nhLegD'),dS);$('nhDaySub').textContent='Started vs No Show for each start date.'+note;
+  // by week
+  const byW={};rows.forEach(r=>{(byW[r.week]=byW[r.week]||cnt([]))[r.group]++});
+  let weeks=[];if(rows.length){const w0=weekEnd(dmin),w1=weekEnd(dmax);for(let w=w0;w<=w1;w=addDays(w,7))weeks.push(w)}
+  const gw=w=>byW[w]||cnt([]);
+  const rqW={};nhReqRows().forEach(r=>{rqW[r.week]=(rqW[r.week]||0)+r.total});
+  const wS=mkSeries(weeks.map(w=>gw(w).Started),weeks.map(w=>gw(w)['No Show']),weeks.map(w=>gw(w).Scheduled));
+  if(hasReq)wS.unshift({name:'Requested',color:NH_COL.req,vals:weeks.map(w=>rqW[w]||0)});
+  nhChart($('nhWeek'),weeks.map(w=>{const x=gw(w);return {label:mdOf(w),sub:'WE',tip:'Week ending '+w,rate:pct(x.Started,x.Started+x['No Show']),fill:rqW[w]?pct(x.Started,rqW[w]):null}}),wS,{minSlot:56,aria:'Started versus no shows by week'});
+  nhReqStrip($('nhReqW'),weeks,gw,true);
+  nhLegend($('nhLegW'),wS);$('nhWeekSub').textContent='Each column is a week ending Saturday; hover for the show rate.';
+  // tables
+  const tbl=(el,keyFn,keys,label)=>{
+    const m={};rows.forEach(r=>{(m[keyFn(r)]=m[keyFn(r)]||cnt([]))[r.group]++});
+    el.innerHTML=`<tr><th>${label}</th><th class="n">Started</th><th class="n">No Show</th><th class="n">Show rate</th><th class="n">Scheduled</th><th class="n">Other</th></tr>`+keys.filter(x=>m[x]).map(x=>{const q=m[x],r=pct(q.Started,q.Started+q['No Show']);return `<tr><td><b>${esc(x)}</b></td><td class="n">${q.Started}</td><td class="n">${q['No Show']}</td><td class="n ${r!=null&&r<75?'rate-lo':''}">${r==null?'—':r+'%'}</td><td class="n">${q.Scheduled}</td><td class="n">${q.Other}</td></tr>`}).join('');
+  };
+  tbl($('nhTSite'),r=>r.site,[...new Set(rows.map(r=>r.site))].sort((a,b)=>siteNum(a)-siteNum(b)||a.localeCompare(b)),'Site');
+  tbl($('nhTShift'),r=>r.shift,[...new Set(rows.map(r=>r.shift))].sort(),'Shift');
+  const det=rows.slice().sort((a,b)=>b.date.localeCompare(a.date)||a.site.localeCompare(b.site)).slice(0,300);
+  $('nhDetSub').textContent=`Showing ${det.length} of ${rows.length} (newest first).`;
+  $('nhTDet').innerHTML='<tr><th>Date</th><th>Site</th><th>Shift</th><th>Name</th><th>Status</th><th>Group</th><th>Type</th></tr>'+det.map(r=>`<tr><td>${r.date}</td><td>${esc(r.site)}</td><td>${esc(r.shift)}</td><td>${esc(r.name)}</td><td>${esc(r.status)}</td><td>${r.group}</td><td>${esc(r.type)}</td></tr>`).join('');
+}
+
+
+$('nhSite').onchange=e=>{NH.site=e.target.value;nhRender()};
+$('nhShift').onchange=e=>{NH.shift=e.target.value;nhRender()};
+$('nhFrom').onchange=e=>{NH.from=e.target.value;nhRender()};
+$('nhTo').onchange=e=>{NH.to=e.target.value;nhRender()};
+$('nhSched').onchange=e=>{NH.sched=e.target.checked;nhRender()};
+$('nhRng').onclick=e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==null)return;const t=isoToday();NH.from=+w?addDays(t,-(+w*7-1)):'';NH.to=+w?t:'';$('nhFrom').value=NH.from;$('nhTo').value=NH.to;nhRender()};
+$('nhSync').onclick=nhSync;
+$('nhSample').onclick=()=>{nhSet(nhSampleData(),true);nhStatusMsg('Sample data loaded')};
+$('nhGear').onclick=()=>{const c=$('nhConn');c.style.display=c.style.display==='none'?'':'none'};
+$('nhUrl').value=store.get('nhUrl')||'';$('nhTokIn').value=store.get('nhTok')||'';
+$('nhUrl').onchange=()=>store.set('nhUrl',$('nhUrl').value.trim());
+$('nhTokIn').onchange=()=>store.set('nhTok',$('nhTokIn').value.trim());
+window.NHTAB={loadFile:nhLoadFile,render:nhRender,sync:nhSync,empty:()=>!NH.rows.length};
+nhRender();
+})();
+
+/* ---------- main tabs ---------- */
+(function(){
+  const show=t=>{
+    document.body.classList.remove('tab-we','tab-nh','tab-pr');document.body.classList.add('tab-'+t);
+    document.getElementById('viewNH').style.display=t==='nh'?'':'none';
+    document.getElementById('viewPR').style.display=t==='pr'?'':'none';
+    document.querySelectorAll('#mainTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    if(t==='pr'){const f=document.getElementById('prFrame');if(!f.getAttribute('src'))f.src='punches/'}
+    if(t==='nh'&&window.NHTAB)NHTAB.render();
+  };
+  document.querySelectorAll('#mainTabs button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+  show('we');
 })();
 </script>
 </body>
