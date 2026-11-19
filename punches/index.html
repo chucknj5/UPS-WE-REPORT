@@ -55,7 +55,10 @@ th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:n
 th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer}
 .scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
 .tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800}
-.t-miss{background:#fde2e1;color:var(--bad)}.t-dbl{background:#efe4ff;color:#5b2ca0}.t-far{background:#fff1d6;color:var(--warn)}.t-short{background:#e5f0ff;color:#1d4f91}.t-man{background:#eee;color:#555}
+.t-miss{background:#fde2e1;color:var(--bad)}.t-dbl{background:#efe4ff;color:#5b2ca0}.t-far{background:#fff1d6;color:var(--warn)}.t-short{background:#e5f0ff;color:#1d4f91}.t-man{background:#eee;color:#555}.t-out{background:#e3f4ea;color:var(--good)}.t-in{background:#fff1d6;color:var(--warn)}
+.tcbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:13px}
+.tcp{display:grid!important;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center}
+.tcp .h{font-size:10.5px;font-weight:800;color:var(--mute);text-transform:uppercase}
 .empty{padding:40px;text-align:center;color:var(--mute);background:#fff;border:1px dashed var(--line);border-radius:12px}
 .hint{font-size:12px;color:var(--mute)}
 #dlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:9}
@@ -76,7 +79,7 @@ th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;le
   <button class="pri" id="btnSync" title="Pull the Punch Report from uAttend now (via Google Sheets)">⟳ SYNC</button>
 </header>
 <main>
-  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div></div>
+  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div><div class="tab" data-t="out">PUNCHED OUT · TIMECARD<span class="bdg" id="outN" style="display:none;background:var(--good)"></span></div></div>
   <div class="bar" id="filters">
     <b>SITE</b><span id="siteChips"></span>
     <b style="margin-left:8px">DEPT</b><select id="dept"><option value="">All departments</option></select>
@@ -99,7 +102,7 @@ const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.par
 function lineOf(dept){const u=(dept||'').toUpperCase();
   if(/ROADIE/.test(u))return'ROADIES';if(/OFFICE|ADMIN|CLERK/.test(u))return'OFFICE';if(/TRANSPORT/.test(u))return'TRANSPORTATION';
   if(/SORT/.test(u))return'SORT';if(/TRANSF/.test(u))return'TRANSFER';if(/PRO|PRS/.test(u))return'PROCESSING';return'JANITOR/OTHER'}
-const S={rows:[],day:iso(new Date()),tab:'board',sites:new Set(LS.get('pb_sites',[])),dept:'',q:'',byLine:LS.get('pb_line',false),pulled:null,loadedAt:null,sort:{k:'issue',d:1}};
+const S={rows:[],day:iso(new Date()),tab:'board',sites:new Set(LS.get('pb_sites',[])),dept:'',q:'',byLine:LS.get('pb_line',false),pulled:null,loadedAt:null,sort:{k:'issue',d:1},tc:{day:null,rows:[],busy:false,msg:'',at:null}};
 
 /* ---------- Google Sheets link ---------- */
 let CLOUD=LS.get('pb_cloud',{url:'',token:''});
@@ -123,7 +126,7 @@ function say(t,bad){const s=$('stat');s.innerHTML=t;s.className='stat'+(bad?' ba
 /* ---------- load ---------- */
 function parse(data){
   const H=data.head,ix=n=>H.indexOf(n);
-  return data.rows.map(r=>({date:r[ix('DATE')],acct:r[ix('ACCOUNT')],id:r[ix('PUNCH ID')],uid:r[ix('USER ID')],name:r[ix('NAME')],
+  return data.rows.map(r=>({date:r[ix('DATE')],acct:r[ix('ACCOUNT')],id:r[ix('PUNCH ID')],uid:r[ix('USER ID')],name:r[ix('NAME')],payroll:String(r[ix('PAYROLL ID')]||'').trim(),
     dept:r[ix('DEPARTMENT')],site:r[ix('SITE')]||'??',inD:r[ix('IN DATE')],inT:r[ix('IN TIME')],outD:r[ix('OUT DATE')],outT:r[ix('OUT TIME')],
     tot:+r[ix('TOTAL')]||0,inM:r[ix('IN METHOD')],outM:r[ix('OUT METHOD')],inC:r[ix('IN CLOCK')],outC:r[ix('OUT CLOCK')]}))
     .map(p=>{p.inAt=p.inD&&p.inT?new Date(p.inD+'T'+p.inT+':00'):null;p.outAt=p.outD&&p.outT?new Date(p.outD+'T'+p.outT+':00'):null;p.line=lineOf(p.dept);return p});
@@ -186,9 +189,11 @@ function render(){
   $('dept').innerHTML='<option value="">All departments</option>'+depts.map(d=>`<option ${d===S.dept?'selected':''}>${esc(d)}</option>`).join('');
   $('byLine').checked=S.byLine;$('issCfg').style.display=S.tab==='issues'?'':'none';
   const iss=issues();$('issN').style.display=iss.length?'':'none';$('issN').textContent=iss.length;
+  const tcN=S.tc.day===S.day?new Set(S.tc.rows.map(r=>r.pay||r.name)).size:0;$('outN').style.display=tcN?'':'none';$('outN').textContent=tcN;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t===S.tab));
-  if(!S.rows.length){$('view').innerHTML='<div class="empty">No punches for this date yet. Hit ⟳ SYNC to pull from uAttend.</div>';return}
-  $('view').innerHTML=S.tab==='board'?boardView(visible(dayRows)):issuesView(iss.filter(x=>visible([x.p]).length));
+  if(!S.rows.length&&S.tab!=='out'){$('view').innerHTML='<div class="empty">No punches for this date yet. Hit ⟳ SYNC to pull from uAttend.</div>';return}
+  $('view').innerHTML=S.tab==='board'?boardView(visible(dayRows)):S.tab==='out'?outView(dayRows):issuesView(iss.filter(x=>visible([x.p]).length));
+  if(S.tab==='out'&&S.tc.day!==S.day&&!S.tc.busy)loadTC(false);
   bindView();
 }
 function boardView(rows){
@@ -232,7 +237,79 @@ function issuesView(list){
   S._csv=[['Issue','Site','Department','Associate','In Date','In','Out Date','Out','Hours','Details','In Method','Out Method']].concat(list.map(x=>[x.t,x.p.site,x.p.dept,x.p.name,x.p.inD,x.p.inT,x.p.outD,x.p.outT,x.p.outT?f2(x.p.tot):'',x.d,x.p.inM,x.p.outM]));
   return h+'</tbody></table></div>';
 }
+/* ---------- PUNCHED OUT · TIMECARD ---------- */
+async function loadTC(pull){
+  if(S.tc.busy)return;S.tc.busy=true;const day=S.day;
+  const show=m=>{S.tc.msg=m;if(S.tab==='out')render()};
+  try{
+    if(!CLOUD.url||!CLOUD.token)throw new Error('Google Sheets link not set.');
+    if(pull){
+      show('⏳ Asking uAttend for the Timecard Report (yesterday + today)… this takes 2–5 min.');
+      await jsonp({action:'pull'},60000);
+      const t0=Date.now();
+      while(Date.now()-t0<12*60000){await new Promise(r=>setTimeout(r,10000));
+        const st=(await jsonp({action:'status'},30000)).status||{};
+        if(st.state==='done'||st.state==='error'){if(st.state==='error')throw new Error('uAttend pull failed: '+(st.msg||st.error||''));break}
+        show(`⏳ Pulling Timecard Report from uAttend… ${Math.round((Date.now()-t0)/1000)}s`);}
+    }else show('⏳ Loading Timecard Report from Google Sheets…');
+    const d=await jsonp({action:'data',start:day,end:day},90000),H=d.data.head,ix=n=>H.indexOf(n);
+    S.tc.rows=d.data.rows.map(r=>({name:r[ix('NAME')],pay:String(r[ix('PAYROLL')]||''),dept:r[ix('DEPT')],reg:+r[ix('REG')]||0,ot:(+r[ix('OT1')]||0)+(+r[ix('OT2')]||0),
+      tot:+r[ix('TOTAL')]||0,flag:r[ix('FLAG')]||'',site:(String(r[ix('DEPT')]||'').match(/^(\d{2})/)||[])[1]||'??'}));
+    S.tc.day=day;S.tc.at=new Date();S.tc.msg='';
+  }catch(e){if(S.tc.day!==day)S.tc.rows=[];S.tc.day=day;S.tc.msg='✗ '+e.message}
+  finally{S.tc.busy=false;if(S.tab==='out')render()}
+}
+function outView(dayRows){
+  const key=p=>(p.pay||p.payroll||'').trim()||(p.name||'').toLowerCase().replace(/[^a-z]/g,'');
+  // punch status per person for the day
+  const pst={};dayRows.forEach(p=>{const k=(p.payroll||'')||(p.name||'').toLowerCase().replace(/[^a-z]/g,'');const o=pst[k]=pst[k]||{name:p.name,site:p.site,dept:p.dept,uid:p.uid,in:false,lastOut:'',hrs:0};
+    if(inNow(p))o.in=true;if(p.outT){o.hrs+=p.tot;if(!o.lastOut||(p.outD+p.outT)>o.lastOut)o.lastOut=p.outD+' '+p.outT}});
+  const allTc=S.tc.day===S.day?S.tc.rows:[];
+  const q=S.q.toLowerCase(),tc=allTc.filter(r=>(!S.sites.size||S.sites.has(r.site))&&(!S.dept||r.dept===S.dept)&&(!q||r.name.toLowerCase().includes(q)));
+  const outPpl=Object.entries(pst).filter(([k,o])=>!o.in&&o.lastOut&&(!S.sites.size||S.sites.has(o.site))&&(!S.dept||o.dept===S.dept)&&(!q||o.name.toLowerCase().includes(q)));
+  const inPpl=Object.values(pst).filter(o=>o.in&&(!S.sites.size||S.sites.has(o.site))&&(!S.dept||o.dept===S.dept)&&(!q||o.name.toLowerCase().includes(q)));
+  const tcKeys=new Set(allTc.map(key)),tcPpl=new Set(tc.map(key));
+  const missing=allTc.length?outPpl.filter(([k])=>!tcKeys.has(k)):[];
+  const sum=(a,f)=>a.reduce((x,r)=>x+f(r),0);
+  const at=S.tc.at?S.tc.at.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+  let h=`<div class="tcbar"><b>TIMECARD REPORT · ${esc(S.day)}</b><span class="hint">${S.tc.busy?'':allTc.length?`${allTc.length} rows from Google Sheets${at?' · loaded '+at:''}`:'Not on the Timecard Report yet'}</span>
+    <span class="${/^✗/.test(S.tc.msg)?'tag t-miss':'hint'}">${esc(S.tc.msg)}</span><span style="flex:1"></span>
+    <button id="tcReload" ${S.tc.busy?'disabled':''}>↻ RELOAD</button><button class="pri" id="tcPull" ${S.tc.busy?'disabled':''} title="Pull yesterday + today's Timecard Report from uAttend into Google Sheets">⟳ PULL TIMECARD FROM UATTEND</button></div>
+  <div class="kpis"><div class="kpi"><div class="l">Punched out (punches)</div><div class="v">${outPpl.length}</div></div>
+    <div class="kpi"><div class="l">On timecard</div><div class="v in">${tcPpl.size}</div></div>
+    <div class="kpi"><div class="l">Timecard hours</div><div class="v">${f2(sum(tc,r=>r.tot))}</div></div>
+    <div class="kpi"><div class="l">REG / OT hrs</div><div class="v" style="font-size:20px">${f2(sum(tc,r=>r.reg))} / <span style="color:var(--bad)">${f2(sum(tc,r=>r.ot))}</span></div></div>
+    <div class="kpi"><div class="l">Still punched in</div><div class="v" style="color:var(--warn)">${inPpl.length}</div></div>
+    <div class="kpi"><div class="l">Out but not on timecard</div><div class="v" style="color:var(--bad)">${missing.length}</div></div></div>`;
+  if(!tc.length&&!S.tc.busy)h+=`<div class="empty">No Timecard Report rows for ${esc(S.day)}${S.sites.size||S.dept||q?' with these filters':''}.<br>Hit <b>⟳ PULL TIMECARD FROM UATTEND</b> to get it (today's hours show as people punch out).</div>`;
+  const csv=[['Site','Department','Associate','Payroll','REG','OT','Total Hrs','Punch Status','Flag']];
+  if(tc.length){
+    h+='<div class="grid">';
+    const bySite={};tc.forEach(r=>(bySite[r.site]=bySite[r.site]||[]).push(r));
+    Object.keys(bySite).sort().forEach(s=>{const rs=bySite[s];
+      h+=`<div class="site"><h2><span>SITE ${esc(s)}${SITE_NAMES[s]?' · '+esc(SITE_NAMES[s]):''}</span><span class="n" title="Timecard hours">${f2(sum(rs,r=>r.tot))} HRS</span></h2>
+        <div class="sub"><span>${new Set(rs.map(key)).size} on timecard</span><span>REG ${f2(sum(rs,r=>r.reg))}</span><span>OT ${f2(sum(rs,r=>r.ot))}</span></div>`;
+      const g={};rs.forEach(r=>{const k=S.byLine?lineOf(r.dept):r.dept;(g[k]=g[k]||[]).push(r)});
+      Object.keys(g).sort((a,b)=>sum(g[b],r=>r.tot)-sum(g[a],r=>r.tot)).forEach(k=>{const ps=g[k].slice().sort((a,b)=>a.name.localeCompare(b.name));
+        h+=`<details class="dept"><summary><span>${esc(k)}</span><span class="c"><b>${new Set(ps.map(key)).size}</b> <span>ppl · ${f2(sum(ps,r=>r.tot))} hrs</span></span></summary>
+          <div class="ppl"><div class="tcp"><span class="h">Associate</span><span class="h">REG</span><span class="h">OT</span><span class="h">TOTAL</span><span class="h">Status</span></div>${ps.map(r=>{const o=pst[key(r)];
+            const st=o?(o.in?'<span class="tag t-in">STILL IN</span>':o.lastOut?`<span class="tag t-out">OUT ${esc(o.lastOut.slice(11))}</span>`:''):'';
+            csv.push([r.site,r.dept,r.name,r.pay,f2(r.reg),f2(r.ot),f2(r.tot),o?(o.in?'STILL IN':o.lastOut?'OUT '+o.lastOut:''):'',r.flag]);
+            return `<div class="tcp"><span>${esc(r.name)}${S.byLine?` <span class="t">${esc(r.dept)}</span>`:''}${r.flag?` <span class="tag t-man" title="${esc(r.flag)}">!</span>`:''}</span><span class="t">${f2(r.reg)}</span><span class="t" style="${r.ot?'color:var(--bad);font-weight:700':''}">${f2(r.ot)}</span><span class="t"><b>${f2(r.tot)}</b></span><span>${st}</span></div>`}).join('')}</div></details>`});
+      h+='</div>'});
+    h+='</div>';
+  }
+  if(missing.length){h+=`<h3 style="margin:16px 0 6px;color:var(--bad)">Punched out but NOT on the Timecard Report (${missing.length})</h3><div class="scroll"><table><thead><tr><th>Site</th><th>Department</th><th>Associate</th><th>Last Out</th><th>Punch Hrs</th></tr></thead><tbody>`+
+    missing.sort((a,b)=>(a[1].site+a[1].name).localeCompare(b[1].site+b[1].name)).map(([k,o])=>{csv.push([o.site,o.dept,o.name,'','','',f2(o.hrs),'OUT '+o.lastOut,'NOT ON TIMECARD']);
+      return `<tr><td>${esc(o.site)}</td><td>${esc(o.dept)}</td><td><b>${esc(o.name)}</b></td><td>${esc(o.lastOut)}</td><td>${f2(o.hrs)}</td></tr>`}).join('')+'</tbody></table></div>'}
+  S._tcCsv=csv;
+  if(tc.length||missing.length)h+='<div style="display:flex;justify-content:flex-end;margin-top:8px"><button id="btnTcCsv">EXPORT CSV</button></div>';
+  return h;
+}
 function bindView(){
+  const tp=$('tcPull');if(tp)tp.onclick=()=>loadTC(true);const tr=$('tcReload');if(tr)tr.onclick=()=>{S.tc.day=null;loadTC(false)};
+  const tcc=$('btnTcCsv');if(tcc)tcc.onclick=()=>{const t=S._tcCsv.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='Timecard_'+S.day+'.csv';a.click()};
   const c=$('btnCsv');if(c)c.onclick=()=>{const t=S._csv.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='Punch_Issues_'+S.day+'.csv';a.click()};
   document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{S.sort={k:th.dataset.k,d:S.sort.k===th.dataset.k?-S.sort.d:1};render()});
@@ -263,8 +340,8 @@ setInterval(()=>{if(S.tab==='board'&&isToday()&&!busy)render()},60000); // keep 
 let LIVE=false; // true when this site has the /api/punches function (live straight from uAttend)
 (async()=>{
   if(/^https?:/.test(location.protocol)){try{const r=await fetch('/api/punches?start=2000-01-01&end=2000-01-01',{cache:'no-store'});const j=await r.json();if(j&&j.ok)LIVE=true}catch(e){}}
-  if(LIVE){$('btnCfg').style.display='none';load(false);return}
   if(/^https?:/.test(location.protocol)){try{const c=await (await fetch('/api/config',{cache:'no-store'})).json();if(c&&c.url&&c.token){CLOUD={url:c.url,token:c.token,builtin:true}}}catch(e){}}
+  if(LIVE){$('btnCfg').style.display='none';load(false);return}
   if(!CLOUD.url||!CLOUD.token){$('view').innerHTML='<div class="empty">Set the Google Sheets link with ☁ to start.</div>';return}
   load(false);
 })();
