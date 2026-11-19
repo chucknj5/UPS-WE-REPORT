@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UPS Punch Board</title>
+<style>
+:root{--bg:#f4f1ec;--panel:#fff;--ink:#1f1a14;--mute:#6f675c;--line:#e4ded4;--brand:#351c15;--gold:#ffb500;--good:#1f7a4a;--bad:#c0392b;--warn:#b45309;--soft:#faf8f4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--brand);color:#fff;padding:12px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:17px;letter-spacing:.5px}
+header h1 span{color:var(--gold)}
+header .sp{flex:1}
+header label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;display:flex;flex-direction:column;gap:2px}
+header input,header select{background:#4a2a20;color:#fff;border:1px solid #6b4436;border-radius:6px;padding:5px 8px;font:inherit}
+button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:700}
+button.pri{background:var(--gold);border-color:var(--gold);color:#1a1a1a}
+button:disabled{opacity:.5;cursor:wait}
+.stat{font-size:12px;color:#e9dccf;max-width:420px}
+.stat.bad{color:#ffb4ab}
+main{padding:14px 20px;max-width:1500px;margin:0 auto}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--brand);margin-bottom:12px}
+.tab{padding:9px 16px;border-radius:8px 8px 0 0;background:#e6e1d8;cursor:pointer;font-weight:800;font-size:13px;color:var(--mute)}
+.tab.on{background:var(--brand);color:#fff}
+.tab .bdg{display:inline-block;background:var(--bad);color:#fff;border-radius:9px;font-size:11px;padding:0 7px;margin-left:6px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:12px}
+.bar b{font-size:11px;letter-spacing:.6px;color:var(--brand)}
+.chip{border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:700;font-size:13px;background:#f1eee8;color:var(--mute);user-select:none}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.chip small{font-weight:600;opacity:.85;margin-left:4px}
+.bar input,.bar select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi .l{font-size:11px;text-transform:uppercase;color:var(--mute);letter-spacing:.5px}
+.kpi .v{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.kpi .v.in{color:var(--good)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-items:start}
+.site{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.site h2{margin:0;background:var(--brand);color:#fff;font-size:15px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center}
+.site h2 .n{background:var(--gold);color:#1a1a1a;border-radius:20px;padding:1px 10px;font-size:14px}
+.site .sub{font-size:12px;color:var(--mute);padding:6px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap}
+.dept{border-bottom:1px solid var(--line)}
+.dept summary{display:flex;justify-content:space-between;gap:8px;padding:7px 12px;cursor:pointer;font-weight:700;list-style:none}
+.dept summary::-webkit-details-marker{display:none}
+.dept summary .c{font-variant-numeric:tabular-nums}
+.dept summary .c b{color:var(--good)}
+.dept summary .c span{color:var(--mute);font-weight:600;font-size:12px}
+.ppl{padding:0 12px 8px}
+.ppl div{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;border-top:1px dashed #eee}
+.ppl .t{color:var(--mute);font-variant-numeric:tabular-nums}
+.ppl .long{color:var(--bad);font-weight:700}
+table{border-collapse:collapse;width:100%;background:#fff;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap;font-size:13px}
+th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
+.tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800}
+.t-miss{background:#fde2e1;color:var(--bad)}.t-dbl{background:#efe4ff;color:#5b2ca0}.t-far{background:#fff1d6;color:var(--warn)}.t-short{background:#e5f0ff;color:#1d4f91}.t-man{background:#eee;color:#555}
+.empty{padding:40px;text-align:center;color:var(--mute);background:#fff;border:1px dashed var(--line);border-radius:12px}
+.hint{font-size:12px;color:var(--mute)}
+#dlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:9}
+#dlg .card{background:#fff;border-radius:12px;padding:18px;width:min(480px,94vw);display:flex;flex-direction:column;gap:8px}
+#dlg label{display:flex;flex-direction:column;font-size:11px;font-weight:800;color:var(--mute);gap:3px}
+#dlg input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+@media(max-width:600px){main{padding:10px}header{padding:10px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>UPS <span>PUNCH</span> BOARD</h1>
+  <label>Date<input type="date" id="day"></label>
+  <span class="stat" id="stat"></span>
+  <div class="sp"></div>
+  <label style="flex-direction:row;align-items:center;gap:6px;text-transform:none;font-size:12px"><input type="checkbox" id="auto" checked style="width:auto"> Auto-refresh 5 min</label>
+  <button id="btnCfg" title="Google Sheets link settings">☁</button>
+  <button class="pri" id="btnSync" title="Pull the Punch Report from uAttend now (via Google Sheets)">⟳ SYNC</button>
+</header>
+<main>
+  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div></div>
+  <div class="bar" id="filters">
+    <b>SITE</b><span id="siteChips"></span>
+    <b style="margin-left:8px">DEPT</b><select id="dept"><option value="">All departments</option></select>
+    <input id="q" placeholder="Search name…" style="min-width:160px">
+    <label class="hint" style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="byLine"> Group by line (Sort / Transfer / …)</label>
+    <span id="issCfg" class="hint" style="display:none">Too long over <input id="maxH" type="number" value="12" step="0.5" style="width:60px"> hrs · Double if INs within <input id="dblM" type="number" value="10" style="width:52px"> min · Short under <input id="minM" type="number" value="5" style="width:52px"> min</span>
+  </div>
+  <div id="view"><div class="empty">Loading punches…</div></div>
+</main>
+<div id="dlg"></div>
+<script>
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDays=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const f2=n=>(+n).toFixed(2);
+const SITE_NAMES={'06':'UPS OH'};
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function lineOf(dept){const u=(dept||'').toUpperCase();
+  if(/ROADIE/.test(u))return'ROADIES';if(/OFFICE|ADMIN|CLERK/.test(u))return'OFFICE';if(/TRANSPORT/.test(u))return'TRANSPORTATION';
+  if(/SORT/.test(u))return'SORT';if(/TRANSF/.test(u))return'TRANSFER';if(/PRO|PRS/.test(u))return'PROCESSING';return'JANITOR/OTHER'}
+const S={rows:[],day:iso(new Date()),tab:'board',sites:new Set(LS.get('pb_sites',[])),dept:'',q:'',byLine:LS.get('pb_line',false),pulled:null,loadedAt:null,sort:{k:'issue',d:1}};
+
+/* ---------- Google Sheets link ---------- */
+let CLOUD=LS.get('pb_cloud',{url:'',token:''});
+function jsonp(params,timeoutMs){
+  return new Promise((res,rej)=>{
+    if(!CLOUD.url||!CLOUD.token)return rej(new Error('No Google Sheets link set (☁).'));
+    const qs=o=>Object.entries(o).map(([k,v])=>k+'='+encodeURIComponent(v==null?'':v)).join('&');
+    const cb='__pb'+Date.now()+Math.floor(Math.random()*1e5),s=document.createElement('script');
+    const t=setTimeout(()=>{done();rej(new Error('No answer from Google in time.'))},timeoutMs||90000);
+    function done(){clearTimeout(t);try{delete window[cb]}catch(e){window[cb]=undefined}s.remove()}
+    window[cb]=d=>{done();d&&d.ok?res(d):rej(new Error((d&&d.error)||'Bad answer from Google'))};
+    s.onerror=async()=>{done();try{const r=await fetch(CLOUD.url+(CLOUD.url.includes('?')?'&':'?')+qs({...params,token:CLOUD.token}));const tx=await r.text();let d;
+        try{d=JSON.parse(tx)}catch(e){throw new Error('Google answered with a page instead of data: '+tx.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,160))}
+        d&&d.ok?res(d):rej(new Error((d&&d.error)||'Bad answer from Google'))}
+      catch(e){rej(new Error(/Failed to fetch|NetworkError|Load failed/i.test(e.message)?'Could not reach Google (blocked by this browser or network).':e.message))}};
+    s.src=CLOUD.url+(CLOUD.url.includes('?')?'&':'?')+qs({...params,token:CLOUD.token,callback:cb});document.body.appendChild(s);
+  });
+}
+function say(t,bad){const s=$('stat');s.innerHTML=t;s.className='stat'+(bad?' bad':'')}
+
+/* ---------- load ---------- */
+function parse(data){
+  const H=data.head,ix=n=>H.indexOf(n);
+  return data.rows.map(r=>({date:r[ix('DATE')],acct:r[ix('ACCOUNT')],id:r[ix('PUNCH ID')],uid:r[ix('USER ID')],name:r[ix('NAME')],
+    dept:r[ix('DEPARTMENT')],site:r[ix('SITE')]||'??',inD:r[ix('IN DATE')],inT:r[ix('IN TIME')],outD:r[ix('OUT DATE')],outT:r[ix('OUT TIME')],
+    tot:+r[ix('TOTAL')]||0,inM:r[ix('IN METHOD')],outM:r[ix('OUT METHOD')],inC:r[ix('IN CLOCK')],outC:r[ix('OUT CLOCK')]}))
+    .map(p=>{p.inAt=p.inD&&p.inT?new Date(p.inD+'T'+p.inT+':00'):null;p.outAt=p.outD&&p.outT?new Date(p.outD+'T'+p.outT+':00'):null;p.line=lineOf(p.dept);return p});
+}
+let busy=false;
+async function load(fresh){
+  if(busy)return;busy=true;$('btnSync').disabled=true;
+  const start=addDays(S.day,-1),end=S.day;
+  say(fresh?'⏳ Pulling Punch Report from uAttend…':'⏳ Loading from Google Sheets…');
+  try{
+    let d;
+    if(LIVE){const r=await fetch(`/api/punches?start=${start}&end=${end}`,{cache:'no-store'});d=await r.json();if(!d.ok)throw new Error(d.error||'uAttend error')}
+    else d=await jsonp({action:fresh?'pullpunches':'punches',start,end},fresh?200000:90000);
+    S.rows=parse(d.data);S.pulled=(d.data&&d.data.pulled)||null;S.loadedAt=new Date();
+    const pt=S.pulled&&S.pulled.t?new Date(S.pulled.t):null;
+    say(`✓ ${S.rows.length} punches · loaded ${S.loadedAt.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`+(pt?` · uAttend pulled ${pt.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:''));
+    render();
+  }catch(e){say('✗ '+esc(e.message),true);if(!S.rows.length)$('view').innerHTML=`<div class="empty">${esc(e.message)}</div>`}
+  finally{busy=false;$('btnSync').disabled=false}
+}
+
+/* ---------- logic ---------- */
+function isToday(){return S.day===iso(new Date())}
+function nowRef(){return isToday()?new Date():new Date(S.day+'T23:59:59')}
+const hrsSince=p=>p.inAt?(nowRef()-p.inAt)/36e5:0;
+function inNow(p){return p.inAt&&!p.outT&&p.inAt<=nowRef()&&hrsSince(p)<=+$('maxH').value+4}
+function visible(rows){const q=S.q.toLowerCase();
+  return rows.filter(p=>(!S.sites.size||S.sites.has(p.site))&&(!S.dept||p.dept===S.dept)&&(!q||p.name.toLowerCase().includes(q)))}
+function issues(){
+  const maxH=+$('maxH').value||12,dblM=+$('dblM').value||10,minM=+$('minM').value||5,out=[];
+  const day=S.rows.filter(p=>(p.inD||p.date)===S.day||(!p.outT&&p.inD<S.day));
+  day.forEach(p=>{
+    if(!p.inT)out.push({p,k:'miss',t:'MISSING IN',d:'Out punch with no In'});
+    else if(!p.outT){const h=hrsSince(p);if(p.inD<S.day&&h>maxH)out.push({p,k:'miss',t:'MISSING OUT',d:`In since ${p.inD} ${p.inT} — never punched out`});
+      else if(h>maxH)out.push({p,k:'miss',t:'MISSING OUT',d:`Punched in ${f2(h)} hrs ago, no Out`});}
+    else if(p.tot>maxH)out.push({p,k:'far',t:'TOO LONG',d:`${f2(p.tot)} hrs between In and Out`});
+    else if(p.tot*60<minM)out.push({p,k:'short',t:'TOO SHORT',d:`${Math.round(p.tot*60)} min between In and Out`});
+  });
+  const by={};day.forEach(p=>(by[p.uid||p.name]=by[p.uid||p.name]||[]).push(p));
+  Object.values(by).forEach(ps=>{if(ps.length<2)return;ps.sort((a,b)=>(a.inAt||0)-(b.inAt||0));
+    for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i];if(!a.inAt||!b.inAt)continue;
+      const gap=(b.inAt-a.inAt)/6e4,aEnd=a.outAt||nowRef();
+      if(gap<=dblM)out.push({p:b,k:'dbl',t:'DOUBLE PUNCH',d:`2 Ins ${Math.round(gap)} min apart (${a.inT} & ${b.inT})`});
+      else if(b.inAt<aEnd)out.push({p:b,k:'dbl',t:'OVERLAP',d:`In at ${b.inT} while still in from ${a.inT}${a.outT?'–'+a.outT:''}`});
+      if(!a.outT&&b.inAt>a.inAt&&gap>dblM)out.push({p:a,k:'miss',t:'MISSING OUT',d:`Punched In again at ${b.inT} without punching Out`});
+    }});
+  const seen=new Set();return out.filter(x=>{const k=x.p.id+x.t;if(seen.has(k))return false;seen.add(k);return true});
+}
+
+/* ---------- render ---------- */
+function render(){
+  // site chips & dept list from the whole day
+  const dayRows=S.rows.filter(p=>(p.inD||p.date)===S.day||(!p.outT&&p.inD<S.day));
+  const sites=[...new Set(dayRows.map(p=>p.site))].sort();
+  [...S.sites].forEach(s=>{if(!sites.includes(s))S.sites.delete(s)});
+  const inBy={};dayRows.forEach(p=>{if(inNow(p))inBy[p.site]=(inBy[p.site]||0)+1});
+  $('siteChips').innerHTML=`<span class="chip ${S.sites.size?'':'on'}" data-s="*">ALL</span>`+sites.map(s=>`<span class="chip ${S.sites.has(s)?'on':''}" data-s="${s}">${s}${SITE_NAMES[s]?' '+SITE_NAMES[s].replace(/^UPS\s*/,''):''}<small>${inBy[s]||0} in</small></span>`).join('');
+  $('siteChips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const s=c.dataset.s;if(s==='*')S.sites.clear();else S.sites.has(s)?S.sites.delete(s):S.sites.add(s);LS.set('pb_sites',[...S.sites]);S.dept='';render()});
+  const depts=[...new Set(dayRows.filter(p=>!S.sites.size||S.sites.has(p.site)).map(p=>p.dept))].sort();
+  $('dept').innerHTML='<option value="">All departments</option>'+depts.map(d=>`<option ${d===S.dept?'selected':''}>${esc(d)}</option>`).join('');
+  $('byLine').checked=S.byLine;$('issCfg').style.display=S.tab==='issues'?'':'none';
+  const iss=issues();$('issN').style.display=iss.length?'':'none';$('issN').textContent=iss.length;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t===S.tab));
+  if(!S.rows.length){$('view').innerHTML='<div class="empty">No punches for this date yet. Hit ⟳ SYNC to pull from uAttend.</div>';return}
+  $('view').innerHTML=S.tab==='board'?boardView(visible(dayRows)):issuesView(iss.filter(x=>visible([x.p]).length));
+  bindView();
+}
+function boardView(rows){
+  const now=rows.filter(inNow),people=new Set(rows.map(p=>p.uid||p.name)),inPpl=new Set(now.map(p=>p.uid||p.name));
+  const outPpl=[...people].filter(u=>!inPpl.has(u)).length;
+  let h=`<div class="kpis"><div class="kpi"><div class="l">Punched in ${isToday()?'now':'at end of day'}</div><div class="v in">${inPpl.size}</div></div>
+    <div class="kpi"><div class="l">Worked ${isToday()?'today':S.day}</div><div class="v">${people.size}</div></div>
+    <div class="kpi"><div class="l">Punched out</div><div class="v">${outPpl}</div></div>
+    <div class="kpi"><div class="l">Hours so far</div><div class="v">${f2(rows.reduce((a,p)=>a+(p.outT?p.tot:Math.max(0,hrsSince(p))),0))}</div></div></div><div class="grid">`;
+  const bySite={};rows.forEach(p=>(bySite[p.site]=bySite[p.site]||[]).push(p));
+  Object.keys(bySite).sort().forEach(s=>{
+    const rs=bySite[s],inS=rs.filter(inNow),ppl=new Set(rs.map(p=>p.uid||p.name));
+    h+=`<div class="site"><h2><span>SITE ${esc(s)}${SITE_NAMES[s]?' · '+esc(SITE_NAMES[s]):''}</span><span class="n" title="Punched in now">${new Set(inS.map(p=>p.uid||p.name)).size} IN</span></h2>
+      <div class="sub"><span>${ppl.size} worked today</span><span>${rs.filter(p=>p.outT).length} punched out</span></div>`;
+    const g={};rs.forEach(p=>{const k=S.byLine?p.line:p.dept;(g[k]=g[k]||[]).push(p)});
+    Object.keys(g).sort((a,b)=>g[b].filter(inNow).length-g[a].filter(inNow).length||a.localeCompare(b)).forEach(k=>{
+      const ps=g[k],ins=ps.filter(inNow).sort((a,b)=>a.inAt-b.inAt);
+      h+=`<details class="dept"><summary><span>${esc(k)}</span><span class="c"><b>${ins.length}</b> <span>in / ${new Set(ps.map(p=>p.uid||p.name)).size} today</span></span></summary><div class="ppl">${
+        ins.length?ins.map(p=>{const hs=hrsSince(p);return`<div><span>${esc(p.name)}${S.byLine?` <span class="t">${esc(p.dept)}</span>`:''}</span><span class="t ${hs>+$('maxH').value?'long':''}">in ${esc(p.inT)} · ${f2(hs)} h</span></div>`}).join(''):'<div class="t">Nobody punched in right now</div>'}</div></details>`;
+    });
+    h+='</div>';
+  });
+  return h+'</div>'+(rows.length?'':'<div class="empty">No punches match the filters.</div>');
+}
+function issuesView(list){
+  const cls={miss:'t-miss',dbl:'t-dbl',far:'t-far',short:'t-short'};
+  const cnt=k=>list.filter(x=>x.k===k).length;
+  const key={issue:x=>x.t,site:x=>x.p.site,dept:x=>x.p.dept,name:x=>x.p.name,in:x=>(x.p.inD||'')+(x.p.inT||''),tot:x=>x.p.tot};
+  const f=key[S.sort.k]||key.issue;list=list.slice().sort((a,b)=>{const A=f(a),B=f(b);return(A>B?1:A<B?-1:0)*S.sort.d||a.p.name.localeCompare(b.p.name)});
+  let h=`<div class="kpis"><div class="kpi"><div class="l">Missing punches</div><div class="v" style="color:var(--bad)">${cnt('miss')}</div></div>
+    <div class="kpi"><div class="l">Double / overlapping</div><div class="v" style="color:#5b2ca0">${cnt('dbl')}</div></div>
+    <div class="kpi"><div class="l">Too far apart</div><div class="v" style="color:var(--warn)">${cnt('far')}</div></div>
+    <div class="kpi"><div class="l">Too short</div><div class="v" style="color:#1d4f91">${cnt('short')}</div></div></div>`;
+  if(!list.length)return h+'<div class="empty">✓ No punch issues for this date / filter.</div>';
+  h+=`<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button id="btnCsv">EXPORT CSV</button></div><div class="scroll"><table><thead><tr>
+    <th data-k="issue">Issue</th><th data-k="site">Site</th><th data-k="dept">Department</th><th data-k="name">Associate</th><th data-k="in">In</th><th>Out</th><th data-k="tot">Hrs</th><th>Details</th><th>Method / Clock</th></tr></thead><tbody>`;
+  list.forEach(x=>{const p=x.p,man=/manual/i.test(p.inM+p.outM);
+    h+=`<tr><td><span class="tag ${cls[x.k]}">${x.t}</span></td><td>${esc(p.site)}</td><td>${esc(p.dept)}</td><td><b>${esc(p.name)}</b></td>
+      <td>${esc((p.inD||'')+' '+(p.inT||'—'))}</td><td>${esc(p.outT?(p.outD!==p.inD?p.outD+' ':'')+p.outT:'—')}</td><td>${p.outT?f2(p.tot):'–'}</td>
+      <td>${esc(x.d)}</td><td>${man?'<span class="tag t-man">MANUAL EDIT</span> ':''}<span class="hint">${esc([p.inC,p.outC].filter(Boolean).join(' → '))}</span></td></tr>`});
+  S._csv=[['Issue','Site','Department','Associate','In Date','In','Out Date','Out','Hours','Details','In Method','Out Method']].concat(list.map(x=>[x.t,x.p.site,x.p.dept,x.p.name,x.p.inD,x.p.inT,x.p.outD,x.p.outT,x.p.outT?f2(x.p.tot):'',x.d,x.p.inM,x.p.outM]));
+  return h+'</tbody></table></div>';
+}
+function bindView(){
+  const c=$('btnCsv');if(c)c.onclick=()=>{const t=S._csv.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='Punch_Issues_'+S.day+'.csv';a.click()};
+  document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{S.sort={k:th.dataset.k,d:S.sort.k===th.dataset.k?-S.sort.d:1};render()});
+}
+
+/* ---------- settings dialog ---------- */
+function cfgDialog(){
+  const d=$('dlg');d.innerHTML=`<div class="card"><h3 style="margin:0">☁ GOOGLE SHEETS LINK</h3>
+    ${CLOUD.builtin?'<div class="hint">✓ Built in on this site (from Netlify settings).</div>':''}
+    <label>WEB APP URL (ends in /exec)<input id="cUrl" value="${esc(CLOUD.url)}"></label><label>WEB TOKEN<input id="cTok" value="${esc(CLOUD.token)}"></label>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="cNo">CLOSE</button><button class="pri" id="cOk">SAVE & LOAD</button></div></div>`;
+  d.style.display='flex';$('cNo').onclick=()=>d.style.display='none';
+  $('cOk').onclick=()=>{CLOUD={url:$('cUrl').value.trim(),token:$('cTok').value.trim()};LS.set('pb_cloud',CLOUD);d.style.display='none';load(false)};
+}
+
+/* ---------- wire ---------- */
+$('day').value=S.day;
+$('day').onchange=()=>{S.day=$('day').value||iso(new Date());load(false)};
+$('dept').onchange=()=>{S.dept=$('dept').value;render()};
+$('q').oninput=()=>{S.q=$('q').value;render()};
+$('byLine').onchange=()=>{S.byLine=$('byLine').checked;LS.set('pb_line',S.byLine);render()};
+['maxH','dblM','minM'].forEach(id=>$(id).onchange=render);
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{S.tab=t.dataset.t;render()});
+$('btnSync').onclick=()=>load(true);
+$('btnCfg').onclick=cfgDialog;
+setInterval(()=>{if($('auto').checked&&!busy&&document.visibilityState==='visible'){if(isToday())load(false);else render()}},5*60000);
+setInterval(()=>{if(S.tab==='board'&&isToday()&&!busy)render()},60000); // keep "hours so far" ticking
+let LIVE=false; // true when this site has the /api/punches function (live straight from uAttend)
+(async()=>{
+  if(/^https?:/.test(location.protocol)){try{const r=await fetch('/api/punches?start=2000-01-01&end=2000-01-01',{cache:'no-store'});const j=await r.json();if(j&&j.ok)LIVE=true}catch(e){}}
+  if(LIVE){$('btnCfg').style.display='none';load(false);return}
+  if(/^https?:/.test(location.protocol)){try{const c=await (await fetch('/api/config',{cache:'no-store'})).json();if(c&&c.url&&c.token){CLOUD={url:c.url,token:c.token,builtin:true}}}catch(e){}}
+  if(!CLOUD.url||!CLOUD.token){$('view').innerHTML='<div class="empty">Set the Google Sheets link with ☁ to start.</div>';return}
+  load(false);
+})();
+</script>
+</body>
+</html>
