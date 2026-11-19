@@ -163,6 +163,7 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewNH .rate-lo{color:var(--bad);font-weight:700}
 #viewNH td.n,#viewNH th.n{text-align:right}
 #nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
+body.embed header,body.embed #mainTabs{display:none!important}
 #viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
 </style>
 </head>
@@ -1569,7 +1570,8 @@ nhRender();
     if(t==='nh'&&window.NHTAB)NHTAB.render();
   };
   document.querySelectorAll('#mainTabs button').forEach(b=>b.onclick=()=>show(b.dataset.t));
-  show('we');
+  const emb=/[?&]embed=nh/.test(location.search);
+  if(emb){document.body.classList.add('embed');show('nh')}else show('we');
 })();
 </script>
 </body>
