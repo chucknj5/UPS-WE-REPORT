@@ -192,6 +192,39 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewEOS td.n,#viewEOS th.n{text-align:right}
 #viewEOS .rng button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 #viewEOS td.n{text-align:right}
+#viewSCH .kpis{margin:18px 0 0}
+#viewSCH .kpi .s{font-size:12px;color:var(--mute);margin-top:2px}
+#viewSCH .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:18px;margin:18px 0}
+#viewSCH .grid1{display:grid;grid-template-columns:1fr;gap:18px;margin:18px 0}
+#viewSCH .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+#viewSCH .card h2{margin:0 0 4px;font-size:15px}
+#viewSCH p.sub{margin:0 0 12px;font-size:12px;color:var(--mute)}
+#viewSCH .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-bottom:10px}
+#viewSCH .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+#viewSCH .editbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#viewSCH .editbar button{background:var(--accent);border:0;color:#1a1a1a}
+#viewSCH .editbar button.sec{background:#fff;border:1px solid var(--line);color:var(--ink)}
+#viewSCH .nhf{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0}
+#viewSCH .nhf select,#viewSCH .nhf input[type=date]{padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink)}
+#viewSCH .nhf label{font-size:12px;color:var(--mute);display:flex;align-items:center;gap:6px}
+#viewSCH .rng button{padding:6px 10px;font-size:12px}
+#viewSCH .chwrap{overflow-x:auto}
+#viewSCH .reqstrip{overflow-x:auto;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+#viewSCH .reqstrip h3{font-size:12px;margin:0 0 6px;color:var(--mute);font-weight:600;text-transform:uppercase}
+#viewSCH .reqstrip table{font-size:12px;width:auto}
+#viewSCH .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
+#viewSCH .reqstrip td{border:0;border-bottom:1px solid var(--line)}
+#viewSCH .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
+#viewSCH .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewSCH .note{font-size:12px;color:var(--mute);margin-top:10px}
+#viewSCH .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
+#viewSCH .rate-lo{color:var(--bad);font-weight:700}
+#viewSCH td.n,#viewSCH th.n{text-align:right}
+#viewSCH .rng button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+#viewSCH td.n,#viewSCH th.n{text-align:center}
+#viewSCH #scGrid td.sel{background:#fff6d6}
+#viewSCH #scGrid th.sel{background:var(--accent);color:#1a1a1a}
+#viewSCH #scGrid td[data-d]{cursor:pointer}
 #nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
 body.embed header,body.embed #mainTabs{display:none!important}
 #viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
@@ -212,7 +245,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <button id="btnClear">CLEAR</button>
   <button class="pri" id="btnXlsx">EXPORT EXCEL</button>
 </header>
-<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="pr">PUNCH REPORT</button></nav>
+<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="sch">SCHEDULE</button><button data-t="pr">PUNCH REPORT</button></nav>
 <main>
   <div id="drop"><b>DROP TIMECARD EXPORT(S) HERE</b><br>UPS Time Clock CSV / XLSX — one per day, or drop the whole week at once<br><small>or click to browse</small></div>
   <input type="file" id="fi" multiple accept=".csv,.xlsx,.xls,.json" hidden>
@@ -287,6 +320,37 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <div id="eoGroups"></div>
   <div class="card" style="margin-top:18px"><h2>Weekly Detail</h2><p class="sub" id="eoDetSub"></p><div class="scroll" style="max-height:520px"><table id="eoTDet"></table></div>
     <div class="note">Fill % only counts reports that have both a requested and an actual number; PPH only counts reports with both volume and hours (blanks and zeros are left out so they don't drag the averages down).</div></div>
+</div>
+<div id="viewSCH" style="display:none">
+  <div class="card">
+    <h2>Schedule — Scheduled vs Off by Day</h2>
+    <p class="sub">From the SmartSuite Schedule table, saved to the <b>SCHEDULE</b> tab of the uAttend Google Sheet. Everyone not Archived / DNR is counted as scheduled every day except the days in their <b>Day Off</b> column. Opens with what's saved in the Sheet; <b>Sync</b> pulls fresh from SmartSuite.</p>
+    <div class="editbar">
+      <button id="scSync">⟳ Sync from SmartSuite</button>
+      <button id="scCsv" class="sec">Export day list (CSV)</button>
+      <span id="scStatus" style="font-size:13px;color:var(--mute)"></span>
+    </div>
+    <div class="nhf">
+      <label>Site <select id="scSite"></select></label>
+      <label>Department <select id="scDept"></select></label>
+      <label>Position <select id="scPos"></select></label>
+      <label>Role <select id="scRole"></select></label>
+      <label>Shift <select id="scShift"></select></label>
+      <label>Search <input id="scQ" placeholder="Name…" style="padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px"></label>
+      <label><input type="checkbox" id="scW2"> Only worked in last 2 weeks</label>
+    </div>
+    <div class="nhf">
+      <label>Week ending (Sat) <input type="date" id="scWe"></label>
+      <span class="rng" id="scDays"></span>
+    </div>
+  </div>
+  <div class="kpis" id="scKpis" style="margin-top:18px"></div>
+  <div class="card" style="margin-top:18px"><h2>Scheduled by Day &amp; Shift</h2><p class="sub">Click a day to see who's scheduled and who's off. Small number under each count = off.</p><div class="scroll"><table id="scGrid"></table></div>
+    <div class="legend" id="scLeg" style="margin-top:12px"></div><div class="chwrap" id="scChart"></div></div>
+  <div class="grid">
+    <div class="card"><h2 id="scInH">Scheduled</h2><div class="scroll" style="max-height:620px"><table id="scIn"></table></div></div>
+    <div class="card"><h2 id="scOffH">Off</h2><div class="scroll" style="max-height:620px"><table id="scOff"></table></div></div>
+  </div>
 </div>
 <div id="viewPR" style="display:none"><iframe id="prFrame" title="UPS Punch Report"></iframe></div>
 <div id="nhTip"></div>
@@ -1764,14 +1828,107 @@ let resizeT;addEventListener('resize',()=>{clearTimeout(resizeT);resizeT=setTime
 window.EOSTAB={show:()=>{if(!E.loaded&&!E.busy)load('eossheet',6);else render()}};
 })();
 
+/* ===================== SCHEDULE TAB ===================== */
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get:k=>{try{return localStorage.getItem('we_'+k)}catch(e){return null}}};
+const EMB={url:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb3o9sAWy24vBNgn2t5UWNc5_Yk_ZHn6cN3Y4CGOS_2DtEw/exec',tok:'ups-K3XJWzFtm6iSQWjP8NhbqZm_'};
+const conn=()=>({url:store.get('nhUrl')||EMB.url,tok:store.get('nhTok')||EMB.tok});
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const SHIFTS=['AM','MID','PM','Hub','(no shift)'];
+const SHC={AM:'#2a78d6',MID:'#e0a400',PM:'#5b2ca0',Hub:'#2a9d8f','(no shift)':'#a8a6a0'};
+const C={rows:[],loaded:false,busy:false,site:'',dept:'',pos:'',role:'',shift:'',q:'',w2:false,we:'',day:new Date().getDay(),pulled:''};
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
+const today=()=>new Date().toLocaleDateString('en-CA');
+const siteNum=x=>{const m=String(x).match(/([\d.]+)/);return m?parseFloat(m[1]):9999};
+const shiftOf=s=>{s=String(s||'').trim();if(!s)return'(no shift)';const u=s.toUpperCase();return u==='AM'?'AM':u==='PM'?'PM':u==='MID'?'MID':u==='HUB'?'Hub':s};
+function parse(d){
+  const H=d.head||[],ix=n=>H.indexOf(n);
+  return (d.rows||[]).map(r=>{const off=String(r[ix('DAYS OFF')]||'');
+    return {id:r[ix('RECORD ID')],name:String(r[ix('NAME')]||'').trim()||'(no name)',site:r[ix('SITE')]||'Unassigned',shift:shiftOf(r[ix('SHIFT')]),dept:r[ix('DEPARTMENT')]||'(none)',
+      pos:r[ix('POSITION')]||'(none)',role:r[ix('ROLE')]||'(none)',offTxt:off,off:new Set(off.split(/\s*,\s*/).filter(x=>DAYS.includes(x))),w2:r[ix('WORKED LAST 2 WKS')]==='Yes'}});
+}
+function say(t){$('scStatus').innerHTML=t}
+async function load(action){
+  if(C.busy)return;C.busy=true;$('scSync').disabled=true;
+  const t0=Date.now(),tick=setInterval(()=>say(`⏳ ${action==='schedule'?'Pulling the Schedule from SmartSuite and saving to Google Sheets':'Loading the saved Schedule from Google Sheets'}… ${Math.round((Date.now()-t0)/1000)}s`),1000);
+  try{
+    const c=conn(),r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'action='+action+'&token='+encodeURIComponent(c.tok),{cache:'no-store'});
+    let j;try{j=await r.json()}catch(e){throw new Error('Google answered with a page instead of data — is the Apps Script deployed with the Schedule update?')}
+    if(j.error)throw new Error(j.error);
+    C.rows=parse(j);C.loaded=true;C.pulled=j.pulled||'';
+    say(C.rows.length?`✓ ${C.rows.length.toLocaleString()} people on the schedule${C.pulled?' · last SmartSuite pull '+esc(C.pulled):''}${action==='schedule'?' · saved to Google Sheets (SCHEDULE tab)':''}`:'Nothing saved in Google Sheets yet — click ⟳ Sync from SmartSuite.');
+    fill();render();
+  }catch(e){say('<span style="color:var(--bad)">✗ '+esc(e.message)+'</span>')}
+  finally{clearInterval(tick);C.busy=false;$('scSync').disabled=false}
+}
+function fill(){
+  const opt=(id,key,cur,all,sort)=>{const base=C.rows.filter(r=>(key==='site'||!C.site||r.site===C.site));
+    const vals=[...new Set(base.map(r=>r[key]))].sort(sort||((a,b)=>a.localeCompare(b)));
+    $(id).innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(v)}</option>`).join('')};
+  opt('scSite','site',C.site,'All sites',(a,b)=>siteNum(a)-siteNum(b)||a.localeCompare(b));
+  opt('scDept','dept',C.dept,'All departments');opt('scPos','pos',C.pos,'All positions');opt('scRole','role',C.role,'All roles');
+  opt('scShift','shift',C.shift,'All shifts',(a,b)=>{const i=SHIFTS.indexOf(a),j=SHIFTS.indexOf(b);return(i<0?9:i)-(j<0?9:j)||a.localeCompare(b)});
+}
+function rowsF(){const q=C.q.toLowerCase();return C.rows.filter(r=>(!C.site||r.site===C.site)&&(!C.dept||r.dept===C.dept)&&(!C.pos||r.pos===C.pos)&&(!C.role||r.role===C.role)&&(!C.shift||r.shift===C.shift)&&(!C.w2||r.w2)&&(!q||r.name.toLowerCase().includes(q)))}
+function render(){
+  if(!C.we)C.we=weekEnd(today());$('scWe').value=C.we;
+  const sun=addDays(C.we,-6),dates=DAYS.map((d,i)=>addDays(sun,i));
+  $('scDays').innerHTML=DAYS.map((d,i)=>`<button data-d="${i}" class="${i===C.day?'on':''}">${d.slice(0,3)} ${dates[i].slice(5,7)}/${dates[i].slice(8)}</button>`).join(' ');
+  if(!C.loaded){$('scGrid').innerHTML='';return}
+  const rows=rowsF(),shifts=SHIFTS.filter(s=>rows.some(r=>r.shift===s)).concat([...new Set(rows.map(r=>r.shift))].filter(s=>!SHIFTS.includes(s)));
+  const cnt=(rs,i)=>({on:rs.filter(r=>!r.off.has(DAYS[i])).length,off:rs.filter(r=>r.off.has(DAYS[i])).length});
+  const dayN=DAYS.map((d,i)=>cnt(rows,i)),noOff=rows.filter(r=>!r.off.size).length;
+  const td=dayN[C.day];
+  $('scKpis').innerHTML=[[`Scheduled ${DAYS[C.day].slice(0,3)} ${dates[C.day].slice(5).replace('-','/')}`,td.on,'not off that day'],[`Off ${DAYS[C.day].slice(0,3)}`,td.off,'Day Off includes '+DAYS[C.day]],['On the schedule',rows.length,'people matching the filters'],['Avg scheduled / day',Math.round(dayN.reduce((a,x)=>a+x.on,0)/7),'across the week'],['No day off set',noOff,'counted as scheduled every day']]
+    .map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v">${Number(x[1]).toLocaleString()}</div><div class="s">${x[2]}</div></div>`).join('');
+  const cell=(c,i)=>`<td class="n${i===C.day?' sel':''}" data-d="${i}"><b>${c.on}</b><div style="font-size:11px;color:var(--mute)">${c.off} off</div></td>`;
+  $('scGrid').innerHTML=`<tr><th>Shift</th>${DAYS.map((d,i)=>`<th class="n${i===C.day?' sel':''}" data-d="${i}" style="cursor:pointer">${d.slice(0,3)} ${dates[i].slice(5,7)}/${dates[i].slice(8)}</th>`).join('')}</tr>`+
+    shifts.map(s=>{const rs=rows.filter(r=>r.shift===s);return `<tr><td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${SHC[s]||'#888'};margin-right:6px"></span><b>${esc(s)}</b> <span style="color:var(--mute);font-size:12px">(${rs.length})</span></td>${DAYS.map((d,i)=>cell(cnt(rs,i),i)).join('')}</tr>`}).join('')+
+    `<tr style="background:var(--soft)"><td><b>TOTAL</b></td>${dayN.map((c,i)=>cell(c,i)).join('')}</tr>`;
+  $('scGrid').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{C.day=+e.dataset.d;render()});
+  // stacked-by-shift bars per day
+  const W=Math.max($('scChart').clientWidth||700,360),H=230,L=44,B=34,T=14,max=Math.max(1,...dayN.map(c=>c.on)),slot=(W-L-10)/7,bw=Math.min(54,slot*.6);
+  const y=v=>T+(H-T-B)*(1-v/max);let g='';
+  for(let k=0;k<=4;k++){const v=Math.round(max*k/4);g+=`<line x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${v}</text>`}
+  DAYS.forEach((d,i)=>{let acc=0;const x=L+i*slot+(slot-bw)/2;
+    shifts.forEach(s=>{const v=cnt(rows.filter(r=>r.shift===s),i).on;if(!v)return;g+=`<rect x="${x}" y="${y(acc+v)}" width="${bw}" height="${y(acc)-y(acc+v)}" fill="${SHC[s]||'#888'}"><title>${d} · ${s}: ${v}</title></rect>`;acc+=v});
+    g+=`<text x="${x+bw/2}" y="${y(acc)-5}" text-anchor="middle" font-size="11" font-weight="700" fill="#1f1a14">${acc}</text><text x="${x+bw/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="${i===C.day?'#c0362c':'#1f1a14'}" font-weight="${i===C.day?700:400}">${d.slice(0,3)}</text><text x="${x+bw/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6f675c">${dates[i].slice(5,7)}/${dates[i].slice(8)}</text>`});
+  $('scChart').innerHTML=`<svg width="${W}" height="${H}" role="img" aria-label="Scheduled per day by shift">${g}</svg>`;
+  $('scLeg').innerHTML=shifts.map(s=>`<span><i style="background:${SHC[s]||'#888'}"></i>${esc(s)}</span>`).join('');
+  // lists for the chosen day
+  const dn=DAYS[C.day],srt=(a,b)=>SHIFTS.indexOf(a.shift)-SHIFTS.indexOf(b.shift)||siteNum(a.site)-siteNum(b.site)||a.dept.localeCompare(b.dept)||a.name.localeCompare(b.name);
+  const on=rows.filter(r=>!r.off.has(dn)).sort(srt),off=rows.filter(r=>r.off.has(dn)).sort(srt);
+  const multiSite=!C.site&&new Set(rows.map(r=>r.site)).size>1;
+  const tbl=list=>`<tr><th>Name</th><th>Shift</th>${multiSite?'<th>Site</th>':''}<th>Department</th><th>Position</th><th>Role</th><th>Days Off</th></tr>`+(list.length?list.map(r=>`<tr><td><b>${esc(r.name)}</b>${r.w2?'':' <span title="Not worked in last 2 weeks" style="color:var(--bad);font-size:11px">•</span>'}</td><td>${esc(r.shift)}</td>${multiSite?`<td>${esc(r.site.replace(/^Site\s+/,''))}</td>`:''}<td>${esc(r.dept)}</td><td>${esc(r.pos)}</td><td>${esc(r.role)}</td><td style="color:var(--mute)">${esc(r.offTxt||'—')}</td></tr>`).join(''):'<tr><td colspan="7" style="color:var(--mute)">Nobody</td></tr>');
+  const lbl=`${dn} ${dates[C.day].slice(5,7)}/${dates[C.day].slice(8)}`;
+  $('scInH').textContent=`Scheduled ${lbl} (${on.length})`;$('scOffH').textContent=`Off ${lbl} (${off.length})`;
+  $('scIn').innerHTML=tbl(on);$('scOff').innerHTML=tbl(off);
+  C.csv=[['Status','Date','Name','Shift','Site','Department','Position','Role','Days Off','Worked Last 2 Wks']].concat(on.map(r=>['SCHEDULED',dates[C.day],r.name,r.shift,r.site,r.dept,r.pos,r.role,r.offTxt,r.w2?'Yes':'No']),off.map(r=>['OFF',dates[C.day],r.name,r.shift,r.site,r.dept,r.pos,r.role,r.offTxt,r.w2?'Yes':'No']));
+}
+$('scSync').onclick=()=>load('schedule');
+$('scCsv').onclick=()=>{if(!C.csv)return;const t=C.csv.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='Schedule_'+(C.csv[1]?C.csv[1][1]:today())+'.csv';a.click()};
+[['scSite','site'],['scDept','dept'],['scPos','pos'],['scRole','role'],['scShift','shift']].forEach(([id,k])=>$(id).onchange=e=>{C[k]=e.target.value;if(k==='site'){C.dept=C.pos=C.role=C.shift=''}fill();render()});
+$('scQ').oninput=e=>{C.q=e.target.value;render()};
+$('scW2').onchange=e=>{C.w2=e.target.checked;render()};
+$('scWe').onchange=e=>{C.we=e.target.value?weekEnd(e.target.value):'';render()};
+$('scDays').onclick=e=>{const d=e.target.dataset&&e.target.dataset.d;if(d==null)return;C.day=+d;render()};
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(document.body.classList.contains('tab-sch'))render()},200)});
+window.SCHTAB={show:()=>{if(!C.loaded&&!C.busy){render();load('schedulesheet')}else render()}};
+})();
+
 /* ---------- main tabs ---------- */
 (function(){
   const show=t=>{
-    document.body.classList.remove('tab-we','tab-nh','tab-pr','tab-eos');document.body.classList.add('tab-'+t);
+    document.body.classList.remove('tab-we','tab-nh','tab-pr','tab-eos','tab-sch');document.body.classList.add('tab-'+t);
     document.getElementById('viewNH').style.display=t==='nh'?'':'none';
     document.getElementById('viewPR').style.display=t==='pr'?'':'none';
     document.getElementById('viewEOS').style.display=t==='eos'?'':'none';
     if(t==='eos'&&window.EOSTAB)EOSTAB.show();
+    document.getElementById('viewSCH').style.display=t==='sch'?'':'none';
+    if(t==='sch'&&window.SCHTAB)SCHTAB.show();
     document.querySelectorAll('#mainTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
     if(t==='pr'){const f=document.getElementById('prFrame');if(!f.getAttribute('src'))f.src='punches/'}
     if(t==='nh'&&window.NHTAB)NHTAB.render();
