@@ -162,6 +162,36 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewNH .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
 #viewNH .rate-lo{color:var(--bad);font-weight:700}
 #viewNH td.n,#viewNH th.n{text-align:right}
+#viewEOS .kpis{margin:18px 0 0}
+#viewEOS .kpi .s{font-size:12px;color:var(--mute);margin-top:2px}
+#viewEOS .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:18px;margin:18px 0}
+#viewEOS .grid1{display:grid;grid-template-columns:1fr;gap:18px;margin:18px 0}
+#viewEOS .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+#viewEOS .card h2{margin:0 0 4px;font-size:15px}
+#viewEOS p.sub{margin:0 0 12px;font-size:12px;color:var(--mute)}
+#viewEOS .legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-bottom:10px}
+#viewEOS .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+#viewEOS .editbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#viewEOS .editbar button{background:var(--accent);border:0;color:#1a1a1a}
+#viewEOS .editbar button.sec{background:#fff;border:1px solid var(--line);color:var(--ink)}
+#viewEOS .nhf{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0}
+#viewEOS .nhf select,#viewEOS .nhf input[type=date]{padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink)}
+#viewEOS .nhf label{font-size:12px;color:var(--mute);display:flex;align-items:center;gap:6px}
+#viewEOS .rng button{padding:6px 10px;font-size:12px}
+#viewEOS .chwrap{overflow-x:auto}
+#viewEOS .reqstrip{overflow-x:auto;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+#viewEOS .reqstrip h3{font-size:12px;margin:0 0 6px;color:var(--mute);font-weight:600;text-transform:uppercase}
+#viewEOS .reqstrip table{font-size:12px;width:auto}
+#viewEOS .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
+#viewEOS .reqstrip td{border:0;border-bottom:1px solid var(--line)}
+#viewEOS .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
+#viewEOS .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewEOS .note{font-size:12px;color:var(--mute);margin-top:10px}
+#viewEOS .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
+#viewEOS .rate-lo{color:var(--bad);font-weight:700}
+#viewEOS td.n,#viewEOS th.n{text-align:right}
+#viewEOS .rng button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+#viewEOS td.n{text-align:right}
 #nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
 body.embed header,body.embed #mainTabs{display:none!important}
 #viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
@@ -182,7 +212,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <button id="btnClear">CLEAR</button>
   <button class="pri" id="btnXlsx">EXPORT EXCEL</button>
 </header>
-<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="pr">PUNCH REPORT</button></nav>
+<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="pr">PUNCH REPORT</button></nav>
 <main>
   <div id="drop"><b>DROP TIMECARD EXPORT(S) HERE</b><br>UPS Time Clock CSV / XLSX — one per day, or drop the whole week at once<br><small>or click to browse</small></div>
   <input type="file" id="fi" multiple accept=".csv,.xlsx,.xls,.json" hidden>
@@ -195,7 +225,8 @@ body.embed header,body.embed #mainTabs{display:none!important}
     <h2>New Hires — Started vs No Show</h2>
     <p class="sub">Pulled from the SmartSuite New Hires table. Day and week charts, filtered by site and shift. Starts empty: click Sync, or drop a SmartSuite CSV / JSON export on this tab.</p>
     <div class="editbar">
-      <button id="nhSync">⟳ Sync from SmartSuite</button>
+      <button id="nhSync">⟳ Sync from SmartSuite (last 6 months)</button>
+      <button id="nhAll" class="sec" title="Pulls every New Hire record ever entered — slower">Pull ALL history</button>
       <button id="nhGear" class="sec">⚙ Connection</button>
       <button id="nhSample" class="sec">Load sample data</button>
       <span id="nhStatus" style="font-size:13px;color:var(--mute)"></span>
@@ -227,6 +258,35 @@ body.embed header,body.embed #mainTabs{display:none!important}
   </div>
   <div class="card"><h2>Records</h2><p class="sub" id="nhDetSub"></p><div class="scroll"><table id="nhTDet"></table></div>
     <div class="note">Grouping: Started = status STARTED · No Show = No Show I / II / III / DNU / Missing ID · Scheduled = Scheduled to Start · Other = Sent Home, DNR, Bad BG, Already Active. Show rate = Started ÷ (Started + No Show). Only title (site and name), start date, shift, status and type are loaded; SS #, phone and ID files are never read.</div></div>
+</div>
+<div id="viewEOS" style="display:none">
+  <div class="card">
+    <h2>EOS Report — Weekly Staffing &amp; PPH</h2>
+    <p class="sub">From the SmartSuite EoS table, saved to the <b>EOS</b> tab of the uAttend Google Sheet. Opens with what's saved in the Sheet; <b>Sync</b> pulls the last 6 months from SmartSuite. Weeks end Saturday.</p>
+    <div class="editbar">
+      <button id="eoSync">⟳ Sync from SmartSuite (last 6 months)</button>
+      <button id="eoAll" class="sec" title="Pulls every EoS record ever entered — slow (several minutes)">Pull ALL history</button>
+      <button id="eoCsv" class="sec">Export CSV</button>
+      <span id="eoStatus" style="font-size:13px;color:var(--mute)"></span>
+    </div>
+    <div class="nhf">
+      <label>Site <select id="eoSite"></select></label>
+      <label>Department <select id="eoLine"></select></label>
+      <label>Shift <select id="eoShift"></select></label>
+      <label>Staffing <select id="eoMeas"><option value="best">Start of shift (or Full if blank)</option><option value="start">Start of shift</option><option value="full">Full shift</option><option value="plan">Planned HC vs Start actual</option></select></label>
+      <label>Split by <select id="eoSplit"><option value="line">Department</option><option value="shift">Shift</option><option value="ls">Department + Shift</option><option value="site">Site</option></select></label>
+      <span class="rng" id="eoRng"><button data-w="4">4 wks</button> <button data-w="8">8 wks</button> <button data-w="13" class="on">13 wks</button> <button data-w="26">26 wks</button> <button data-w="0">All loaded</button></span>
+    </div>
+  </div>
+  <div class="kpis" id="eoKpis" style="margin-top:18px"></div>
+  <div class="grid">
+    <div class="card"><h2>Staffing by Week</h2><p class="sub" id="eoStSub">Average per report day: requested vs actual. Hover for fill %.</p><div class="legend" id="eoLegS"></div><div class="chwrap" id="eoStaff"></div></div>
+    <div class="card"><h2>PPH by Week</h2><p class="sub">Actual PPH (volume ÷ actual hours) vs plan PPH (planned volume ÷ planned hours).</p><div class="legend" id="eoLegP"></div><div class="chwrap" id="eoPph"></div></div>
+  </div>
+  <h2 style="margin:6px 0 0;font-size:16px" id="eoSplitH">By Department</h2>
+  <div id="eoGroups"></div>
+  <div class="card" style="margin-top:18px"><h2>Weekly Detail</h2><p class="sub" id="eoDetSub"></p><div class="scroll" style="max-height:520px"><table id="eoTDet"></table></div>
+    <div class="note">Fill % only counts reports that have both a requested and an actual number; PPH only counts reports with both volume and hours (blanks and zeros are left out so they don't drag the averages down).</div></div>
 </div>
 <div id="viewPR" style="display:none"><iframe id="prFrame" title="UPS Punch Report"></iframe></div>
 <div id="nhTip"></div>
@@ -1405,20 +1465,21 @@ async function nhLoadFile(f){
   }catch(e){alert('Could not read file: '+e.message)}
 }
 
-async function nhSync(){
-  const btn=$('nhSync');btn.disabled=true;btn.textContent='Syncing…';
+async function nhSync(all){
+  all=all===true;const months=all?'all':'6';
+  const btn=$('nhSync');btn.disabled=true;$('nhAll').disabled=true;btn.textContent='Syncing'+(all?' ALL history':' last 6 months')+'…';
   const su=store.get('nhUrl'),stok=store.get('nhTok')||'';
   let got=null;const errs=[];
   if(!su)errs.push('Set the Apps Script URL under ⚙ Connection');
   else{
-    const call=async a=>{const r=await fetch(su+(su.includes('?')?'&':'?')+'action='+a+'&token='+encodeURIComponent(stok),{cache:'no-store'});const j=await r.json();if(j.error)throw new Error(j.error);return j};
+    const call=async a=>{const r=await fetch(su+(su.includes('?')?'&':'?')+'action='+a+'&months='+months+'&token='+encodeURIComponent(stok),{cache:'no-store'});const j=await r.json();if(j.error)throw new Error(j.error);return j};
     try{const j=await call('newhires');got={items:j.items||[],maps:NH_MAPS}}
     catch(e){errs.push('Apps Script: '+(e instanceof TypeError?'could not reach the web app':e.message))}
     if(got){try{const j2=await call('requests');NH.req=(j2.items||[]).map(nhReqNorm);NH.reqMsg=''}
       catch(e){NH.req=[];NH.reqMsg='Requests: '+(e instanceof TypeError?'could not reach the web app':e.message)}}
   }
-  btn.disabled=false;btn.textContent='⟳ Sync from SmartSuite';
-  if(got){nhSet(got.items.map(x=>nhNorm(x,got.maps)),false);nhStatusMsg(`Synced ${new Date().toLocaleTimeString()} · ${NH.rows.length} records · ${NH.req.length} requests`)}
+  btn.disabled=false;$('nhAll').disabled=false;btn.textContent='⟳ Sync from SmartSuite (last 6 months)';
+  if(got){nhSet(got.items.map(x=>nhNorm(x,got.maps)),false);nhStatusMsg(`Synced ${new Date().toLocaleTimeString()} · ${all?'ALL history':'last 6 months'} · ${NH.rows.length} records · ${NH.req.length} requests`)}
   else{nhStatusMsg(errs.join(' | '));$('nhConn').style.display=''}
 }
 /* sample data (clearly flagged) */
@@ -1549,7 +1610,8 @@ $('nhFrom').onchange=e=>{NH.from=e.target.value;nhRender()};
 $('nhTo').onchange=e=>{NH.to=e.target.value;nhRender()};
 $('nhSched').onchange=e=>{NH.sched=e.target.checked;nhRender()};
 $('nhRng').onclick=e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==null)return;const t=isoToday();NH.from=+w?addDays(t,-(+w*7-1)):'';NH.to=+w?t:'';$('nhFrom').value=NH.from;$('nhTo').value=NH.to;nhRender()};
-$('nhSync').onclick=nhSync;
+$('nhSync').onclick=()=>nhSync(false);
+$('nhAll').onclick=()=>nhSync(true);
 $('nhSample').onclick=()=>{nhSet(nhSampleData(),true);nhStatusMsg('Sample data loaded')};
 $('nhGear').onclick=()=>{const c=$('nhConn');c.style.display=c.style.display==='none'?'':'none'};
 $('nhUrl').value=store.get('nhUrl')||'';$('nhTokIn').value=store.get('nhTok')||'';
@@ -1559,12 +1621,157 @@ window.NHTAB={loadFile:nhLoadFile,render:nhRender,sync:nhSync,empty:()=>!NH.rows
 nhRender();
 })();
 
+/* ===================== EOS REPORT TAB ===================== */
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get:k=>{try{return localStorage.getItem('we_'+k)}catch(e){return null}}};
+const NH_EMBED={nhUrl:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb3o9sAWy24vBNgn2t5UWNc5_Yk_ZHn6cN3Y4CGOS_2DtEw/exec',nhTok:'ups-K3XJWzFtm6iSQWjP8NhbqZm_'};
+const conn=()=>({url:store.get('nhUrl')||NH_EMBED.nhUrl,tok:store.get('nhTok')||NH_EMBED.nhTok});
+const E={rows:[],site:'',line:'',shift:'',meas:'best',split:'line',weeks:13,loaded:false,busy:false,pulled:'',since:''};
+const COL={req:'#a8a6a0',act:'#2a78d6',plan:'#a8a6a0',pph:'#2a9d8f'};
+const mdOf=iso=>iso.slice(5,7)+'/'+iso.slice(8,10);
+const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
+const today=()=>new Date().toLocaleDateString('en-CA');
+const pct=(a,b)=>b?Math.round(a/b*1000)/10:null;
+const r1=v=>v==null?'—':(Math.round(v*10)/10).toLocaleString();
+const siteNum=x=>{const m=String(x).match(/([\d.]+)/);return m?parseFloat(m[1]):9999};
+const LINE_ORDER=['SORT','PROCESSING','TRANSFER','ROADIES','TRANSPORTATION','OTHER'];
+const lineSort=(a,b)=>{const i=LINE_ORDER.indexOf(a),j=LINE_ORDER.indexOf(b);return (i<0?99:i)-(j<0?99:j)||a.localeCompare(b)};
+const SHIFT_ORDER=['AM','MID','PM',''];
+const shiftSort=(a,b)=>{const i=SHIFT_ORDER.indexOf(a),j=SHIFT_ORDER.indexOf(b);return (i<0?99:i)-(j<0?99:j)||a.localeCompare(b)};
+
+function parse(d){
+  const H=d.head||[],ix=n=>H.indexOf(n),num=v=>v===''||v==null||isNaN(+String(v).replace(/,/g,''))?0:+String(v).replace(/,/g,'');
+  return (d.rows||[]).map(r=>({date:String(r[ix('DATE')]).slice(0,10),we:String(r[ix('WE')]||'').slice(0,10),num:String(r[ix('SITE #')]||''),site:r[ix('SITE')]||'Unassigned',
+    dept:r[ix('DEPARTMENT')]||'',line:r[ix('LINE')]||'OTHER',shift:r[ix('SHIFT')]||'',planHC:num(r[ix('PLANNED HC')]),sReq:num(r[ix('START REQ')]),sAct:num(r[ix('START ACT')]),
+    fReq:num(r[ix('FULL REQ')]),fAct:num(r[ix('FULL ACT')]),pVol:num(r[ix('PLAN VOL')]),aVol:num(r[ix('ACT VOL')]),pHrs:num(r[ix('PLAN HRS')]),aHrs:num(r[ix('ACT HRS')]),
+    hs:num(r[ix('HANDSHAKE HRS')]),leads:num(r[ix('LEADS')]),nh:num(r[ix('NEW HIRES')])}))
+    .filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.date)).map(r=>{if(!r.we)r.we=weekEnd(r.date);return r});
+}
+function say(t){$('eoStatus').innerHTML=t}
+async function call(action,months){
+  const c=conn();
+  const r=await fetch(c.url+(c.url.includes('?')?'&':'?')+'action='+action+'&months='+encodeURIComponent(months)+'&token='+encodeURIComponent(c.tok),{cache:'no-store'});
+  let j;try{j=await r.json()}catch(e){throw new Error('Google answered with a page instead of data — is the Apps Script deployed with the EOS update?')}
+  if(j.error)throw new Error(j.error);return j;
+}
+async function load(action,months){
+  if(E.busy)return;E.busy=true;['eoSync','eoAll'].forEach(i=>$(i).disabled=true);
+  const t0=Date.now(),tick=setInterval(()=>say(`⏳ ${action==='eos'?'Pulling '+(months==='all'?'ALL history':'last '+months+' months')+' from SmartSuite and saving to Google Sheets':'Loading saved EOS rows from Google Sheets'}… ${Math.round((Date.now()-t0)/1000)}s`),1000);
+  try{
+    const j=await call(action,months);
+    E.rows=parse(j);E.loaded=true;E.pulled=j.pulled||'';E.since=j.since||'';
+    say(`✓ ${E.rows.length.toLocaleString()} reports ${E.since?'since '+E.since:'(all history)'}${E.pulled?' · last SmartSuite pull '+esc(E.pulled):''}${action==='eos'?' · saved to Google Sheets (EOS tab)':''}`);
+    fill();render();
+    if(action==='eossheet'&&!E.rows.length)say('No EOS rows saved in Google Sheets yet — click ⟳ Sync from SmartSuite.');
+  }catch(e){say('<span style="color:var(--bad)">✗ '+esc(e.message)+'</span>')}
+  finally{clearInterval(tick);E.busy=false;['eoSync','eoAll'].forEach(i=>$(i).disabled=false)}
+}
+function fill(){
+  const opt=(id,vals,cur,all,fmt)=>{$(id).innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(fmt?fmt(v):v)}</option>`).join('')};
+  opt('eoSite',[...new Set(E.rows.map(r=>r.site))].sort((a,b)=>siteNum(a)-siteNum(b)||a.localeCompare(b)),E.site,'All sites');
+  opt('eoLine',[...new Set(E.rows.map(r=>r.line))].sort(lineSort),E.line,'All departments');
+  opt('eoShift',[...new Set(E.rows.map(r=>r.shift))].sort(shiftSort),E.shift,'All shifts',v=>v||'(none)');
+}
+function rowsF(){
+  const lastWe=weekEnd(today()),from=E.weeks?addDays(lastWe,-(E.weeks*7-1)):'';
+  return E.rows.filter(r=>(!E.site||r.site===E.site)&&(!E.line||r.line===E.line)&&(!E.shift||r.shift===E.shift)&&(!from||r.date>=from)&&r.date<=today());
+}
+function rq(r){if(E.meas==='start')return[r.sReq,r.sAct];if(E.meas==='full')return[r.fReq,r.fAct];if(E.meas==='plan')return[r.planHC,r.sAct||r.fAct];return r.sReq||r.sAct?[r.sReq,r.sAct]:[r.fReq,r.fAct]}
+function agg(rows){
+  const a={req:0,act:0,fReq:0,fAct:0,days:new Set(),aVol:0,aHrs:0,pVol:0,pHrs:0,vol:0,hrs:0,n:rows.length,nh:0};
+  const byDay={};
+  rows.forEach(r=>{const[q,t]=rq(r);a.req+=q;a.act+=t;if(q>0&&t>0){a.fReq+=q;a.fAct+=t}if(q||t)a.days.add(r.date);
+    if(r.aVol>0&&r.aHrs>0){a.aVol+=r.aVol;a.aHrs+=r.aHrs}if(r.pVol>0&&r.pHrs>0){a.pVol+=r.pVol;a.pHrs+=r.pHrs}a.vol+=r.aVol;a.hrs+=r.aHrs;a.nh+=r.nh});
+  const d=a.days.size;
+  return {avgReq:d?a.req/d:null,avgAct:d?a.act/d:null,fill:pct(a.fAct,a.fReq),pph:a.aHrs?a.aVol/a.aHrs:null,plan:a.pHrs?a.pVol/a.pHrs:null,vol:a.vol,hrs:a.hrs,days:d,n:a.n,nh:a.nh};
+}
+function weeksOf(rows){
+  if(!rows.length)return[];
+  const ws=[...new Set(rows.map(r=>r.we))].sort();const out=[];
+  for(let w=ws[0];w<=ws[ws.length-1];w=addDays(w,7))out.push(w);return out;
+}
+/* chart (same look as the New Hires charts) */
+function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x||1)));const f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+function chart(el,cats,series,o){
+  const tip=$('nhTip');
+  if(!cats.length||!series.some(s=>s.vals.some(v=>v))){el.innerHTML='<div class="nhempty">No data in this range.</div>';return}
+  const W=Math.max(el.clientWidth||520,300),L=46,R=10,T=18,B=40,H=o.h||250,n=cats.length,k=series.length;
+  const slot=Math.max(o.minSlot||44,(W-L-R)/n),TW=Math.ceil(L+R+slot*n);
+  const max=Math.max(1,...series.flatMap(s=>s.vals.map(v=>v||0)));
+  const step=niceStep(max/4),top=Math.ceil(max/step)*step;
+  const y=v=>T+(H-T-B)*(1-v/top),base=y(0);
+  const bw=Math.max(3,Math.min(22,(slot-8)/k-2)),gw=k*bw+(k-1)*2;
+  let g='';for(let v=0;v<=top+1e-9;v+=step)g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${v>=1000?(v/1000)+'k':Number.isInteger(v)?v:v.toFixed(1)}</text>`;
+  const lblStep=Math.max(1,Math.ceil(36/slot));let bars='',hits='',xl='';
+  cats.forEach((c,i)=>{const x0=L+i*slot+(slot-gw)/2;
+    series.forEach((s,j)=>{const v=s.vals[i];if(!v)return;const bx=x0+j*(bw+2),by=y(v),h=base-by,r=Math.min(4,h);
+      bars+=`<path d="M${bx},${base}V${by+r}Q${bx},${by} ${bx+r},${by}H${bx+bw-r}Q${bx+bw},${by} ${bx+bw},${by+r}V${base}Z" fill="${s.color}"/>`;
+      if(slot>=40&&bw>=10)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1f1a14">${Math.round(v)}</text>`});
+    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1f1a14">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="${c.badSub?'#c0362c':'#6f675c'}">${c.sub||''}</text>`;
+    hits+=`<rect data-i="${i}" x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"/>`});
+  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${esc(o.aria||'')}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#bdb5a8"/>${bars}${xl}${hits}</svg>`;
+  const svg=el.firstChild;
+  svg.onmousemove=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i==null){tip.style.display='none';return}const c=cats[+i];
+    tip.innerHTML=`<b>${c.tip}</b><br>`+series.map(s=>`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};margin-right:6px"></span>${s.name}: ${r1(s.vals[+i])}`).join('<br>')+(c.extra?'<br>'+c.extra:'');
+    tip.style.display='block';tip.style.left=Math.min(e.clientX+14,innerWidth-200)+'px';tip.style.top=(e.clientY+14)+'px'};
+  svg.onmouseleave=()=>{tip.style.display='none'};
+}
+const legend=(el,s)=>{el.innerHTML=s.map(x=>`<span><i style="background:${x.color}"></i>${x.name}</span>`).join('')};
+function drawPair(elS,elP,rows,weeks,small){
+  const byW={};rows.forEach(r=>(byW[r.we]=byW[r.we]||[]).push(r));
+  const A=weeks.map(w=>agg(byW[w]||[]));
+  const sS=[{name:'Requested / day',color:COL.req,vals:A.map(a=>a.avgReq)},{name:'Actual / day',color:COL.act,vals:A.map(a=>a.avgAct)}];
+  chart(elS,weeks.map((w,i)=>({label:mdOf(w),sub:A[i].fill==null?'':A[i].fill+'%',badSub:A[i].fill!=null&&A[i].fill<90,tip:'Week ending '+w,extra:`Fill: ${A[i].fill==null?'—':A[i].fill+'%'} · ${A[i].days} report day(s)`})),sS,{h:small?190:250,minSlot:small?38:48,aria:'Staffing by week'});
+  const sP=[{name:'Plan PPH',color:COL.plan,vals:A.map(a=>a.plan)},{name:'Actual PPH',color:COL.pph,vals:A.map(a=>a.pph)}];
+  chart(elP,weeks.map((w,i)=>{const vs=A[i].pph&&A[i].plan?pct(A[i].pph,A[i].plan):null;return {label:mdOf(w),sub:vs==null?'':vs+'%',badSub:vs!=null&&vs<100,tip:'Week ending '+w,extra:`vs plan: ${vs==null?'—':vs+'%'} · Volume ${Math.round(A[i].vol).toLocaleString()} · Hours ${Math.round(A[i].hrs).toLocaleString()}`}}),sP,{h:small?190:250,minSlot:small?38:48,aria:'PPH by week'});
+  return {sS,sP,A};
+}
+const gKey=r=>E.split==='line'?r.line:E.split==='shift'?(r.shift||'(no shift)'):E.split==='site'?r.site:(r.line+' · '+(r.shift||'(no shift)'));
+function render(){
+  if(!E.loaded){$('eoKpis').innerHTML='';['eoStaff','eoPph'].forEach(i=>$(i).innerHTML='<div class="nhempty">Loading…</div>');return}
+  const rows=rowsF(),weeks=weeksOf(rows),a=agg(rows);
+  const vs=a.pph&&a.plan?pct(a.pph,a.plan):null;
+  const K=[['Fill rate',a.fill==null?'—':a.fill+'%','actual ÷ requested'],['Requested / day',r1(a.avgReq),'average per report day'],['Actual / day',r1(a.avgAct),'average per report day'],
+    ['Actual PPH',r1(a.pph),'volume ÷ actual hours'],['Plan PPH',r1(a.plan),vs==null?'':'actual is '+vs+'% of plan'],['Volume',Math.round(a.vol).toLocaleString(),Math.round(a.hrs).toLocaleString()+' actual hrs'],['Reports',a.n.toLocaleString(),weeks.length+' week(s)']];
+  $('eoKpis').innerHTML=K.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
+  const p=drawPair($('eoStaff'),$('eoPph'),rows,weeks,false);legend($('eoLegS'),p.sS);legend($('eoLegP'),p.sP);
+  $('eoStSub').textContent={best:'Start of shift (Full shift when Start is blank)',start:'Start of shift',full:'Full shift',plan:'Planned HC vs Start actual'}[E.meas]+': average per report day, requested vs actual. % under each week = fill rate.';
+  // split groups
+  $('eoSplitH').textContent='By '+{line:'Department',shift:'Shift',ls:'Department + Shift',site:'Site'}[E.split];
+  const G={};rows.forEach(r=>(G[gKey(r)]=G[gKey(r)]||[]).push(r));
+  const keys=Object.keys(G).sort(E.split==='site'?(x,y)=>siteNum(x)-siteNum(y)||x.localeCompare(y):E.split==='shift'?shiftSort:(x,y)=>{const[a1,b1]=x.split(' · '),[a2,b2]=y.split(' · ');return lineSort(a1,a2)||shiftSort(b1||'',b2||'')});
+  $('eoGroups').innerHTML=keys.length?keys.map((k,i)=>{const g=agg(G[k]);return `<div class="card" style="margin-top:14px"><h2>${esc(k)} <span style="font-weight:600;color:var(--mute);font-size:12px">· fill ${g.fill==null?'—':g.fill+'%'} · PPH ${r1(g.pph)} vs plan ${r1(g.plan)} · ${g.n} reports</span></h2>
+    <div class="grid" style="margin:8px 0 0"><div><div class="sub" style="font-size:12px;color:var(--mute)">Staffing / day (requested vs actual)</div><div class="chwrap" id="eoGS${i}"></div></div><div><div class="sub" style="font-size:12px;color:var(--mute)">PPH (plan vs actual)</div><div class="chwrap" id="eoGP${i}"></div></div></div></div>`}).join(''):'<div class="nhempty">No reports match these filters.</div>';
+  keys.forEach((k,i)=>drawPair($('eoGS'+i),$('eoGP'+i),G[k],weeks,true));
+  // detail table
+  const det=[];keys.forEach(k=>{const byW={};G[k].forEach(r=>(byW[r.we]=byW[r.we]||[]).push(r));weeks.forEach(w=>{if(byW[w])det.push([w,k,agg(byW[w])])})});
+  det.sort((x,y)=>y[0].localeCompare(x[0])||keys.indexOf(x[1])-keys.indexOf(y[1]));
+  E.csv=[['Week Ending',$('eoSplitH').textContent.replace('By ',''),'Report Days','Requested / day','Actual / day','Fill %','Volume','Actual Hrs','Actual PPH','Plan PPH','PPH vs Plan %','New Hires']]
+    .concat(det.map(([w,k,g])=>[w,k,g.days,g.avgReq==null?'':g.avgReq.toFixed(1),g.avgAct==null?'':g.avgAct.toFixed(1),g.fill??'',Math.round(g.vol),Math.round(g.hrs),g.pph==null?'':g.pph.toFixed(1),g.plan==null?'':g.plan.toFixed(1),g.pph&&g.plan?pct(g.pph,g.plan):'',g.nh]));
+  $('eoDetSub').textContent=`${det.length} week × ${$('eoSplitH').textContent.replace('By ','').toLowerCase()} rows, newest first.`;
+  $('eoTDet').innerHTML='<tr>'+E.csv[0].map(h=>`<th>${h}</th>`).join('')+'</tr>'+E.csv.slice(1).map(r=>`<tr>${r.map((v,i)=>`<td${i>=2?' class="n"':''}${(i===5&&v!==''&&v<90)||(i===10&&v!==''&&v<100)?' style="color:var(--bad);font-weight:700"':''}>${i===0?mdOf(v):i===5||i===10?(v===''?'—':v+'%'):esc(typeof v==='number'?v.toLocaleString():v)}</td>`).join('')}</tr>`).join('');
+}
+$('eoSync').onclick=()=>load('eos',6);
+$('eoAll').onclick=()=>{if(confirm('Pull EVERY EoS record from SmartSuite (all history)? This can take several minutes. It replaces the EOS tab in Google Sheets.'))load('eos','all').then(()=>{E.weeks=0;markRng();render()})};
+$('eoCsv').onclick=()=>{if(!E.csv)return;const t=E.csv.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='EOS_Weekly_'+today()+'.csv';a.click()};
+[['eoSite','site'],['eoLine','line'],['eoShift','shift'],['eoMeas','meas'],['eoSplit','split']].forEach(([id,k])=>$(id).onchange=e=>{E[k]=e.target.value;render()});
+function markRng(){document.querySelectorAll('#eoRng button').forEach(b=>b.classList.toggle('on',+b.dataset.w===E.weeks))}
+$('eoRng').onclick=e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==null)return;E.weeks=+w;markRng();render()};
+let resizeT;addEventListener('resize',()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>{if(document.body.classList.contains('tab-eos'))render()},200)});
+window.EOSTAB={show:()=>{if(!E.loaded&&!E.busy)load('eossheet',6);else render()}};
+})();
+
 /* ---------- main tabs ---------- */
 (function(){
   const show=t=>{
-    document.body.classList.remove('tab-we','tab-nh','tab-pr');document.body.classList.add('tab-'+t);
+    document.body.classList.remove('tab-we','tab-nh','tab-pr','tab-eos');document.body.classList.add('tab-'+t);
     document.getElementById('viewNH').style.display=t==='nh'?'':'none';
     document.getElementById('viewPR').style.display=t==='pr'?'':'none';
+    document.getElementById('viewEOS').style.display=t==='eos'?'':'none';
+    if(t==='eos'&&window.EOSTAB)EOSTAB.show();
     document.querySelectorAll('#mainTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
     if(t==='pr'){const f=document.getElementById('prFrame');if(!f.getAttribute('src'))f.src='punches/'}
     if(t==='nh'&&window.NHTAB)NHTAB.render();
