@@ -337,7 +337,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
       <label>Role <select id="scRole"></select></label>
       <label>Shift <select id="scShift"></select></label>
       <label>Search <input id="scQ" placeholder="Name…" style="padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px"></label>
-      <label><input type="checkbox" id="scW2"> Only worked in last 2 weeks</label>
+      <label><input type="checkbox" id="scW2" checked> Only worked in last 2 weeks</label>
     </div>
     <div class="nhf">
       <label>Week ending (Sat) <input type="date" id="scWe"></label>
@@ -1838,7 +1838,7 @@ const conn=()=>({url:store.get('nhUrl')||EMB.url,tok:store.get('nhTok')||EMB.tok
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const SHIFTS=['AM','MID','PM','Hub','(no shift)'];
 const SHC={AM:'#2a78d6',MID:'#e0a400',PM:'#5b2ca0',Hub:'#2a9d8f','(no shift)':'#a8a6a0'};
-const C={rows:[],loaded:false,busy:false,site:'',dept:'',pos:'',role:'',shift:'',q:'',w2:false,we:'',day:new Date().getDay(),pulled:''};
+const C={rows:[],loaded:false,busy:false,site:'',dept:'',pos:'',role:'',shift:'',q:'',w2:true,we:'',day:new Date().getDay(),pulled:''};
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
 const today=()=>new Date().toLocaleDateString('en-CA');
