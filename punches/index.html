@@ -79,7 +79,7 @@ th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;le
   <button class="pri" id="btnSync" title="Pull the Punch Report from uAttend now (via Google Sheets)">⟳ SYNC</button>
 </header>
 <main>
-  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div><div class="tab" data-t="out">PUNCHED OUT · TIMECARD<span class="bdg" id="outN" style="display:none;background:var(--good)"></span></div><div class="tab" data-t="nh">NEW HIRES</div></div>
+  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div><div class="tab" data-t="out">PUNCHED OUT · TIMECARD<span class="bdg" id="outN" style="display:none;background:var(--good)"></span></div><div class="tab" data-t="hr">HR OVER HR</div><div class="tab" data-t="nh">NEW HIRES</div></div>
   <div class="bar" id="filters">
     <b>SITE</b><span id="siteChips"></span>
     <b style="margin-left:8px">DEPT</b><select id="dept"><option value="">All departments</option></select>
@@ -197,9 +197,35 @@ function render(){
   const tcN=S.tc.day===S.day?new Set(S.tc.rows.map(r=>r.pay||r.name)).size:0;$('outN').style.display=tcN?'':'none';$('outN').textContent=tcN;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t===S.tab));
   if(!S.rows.length&&S.tab!=='out'){$('view').innerHTML='<div class="empty">No punches for this date yet. Hit ⟳ SYNC to pull from uAttend.</div>';return}
-  $('view').innerHTML=S.tab==='board'?boardView(visible(dayRows)):S.tab==='out'?outView(dayRows):issuesView(iss.filter(x=>visible([x.p]).length));
+  $('view').innerHTML=S.tab==='board'?boardView(visible(dayRows)):S.tab==='out'?outView(dayRows):S.tab==='hr'?hrView(visible(dayRows)):issuesView(iss.filter(x=>visible([x.p]).length));
   if(S.tab==='out'&&S.tc.day!==S.day&&!S.tc.busy)loadTC(false);
   bindView();
+}
+function hrView(rows){
+  const maxH=+$('maxH').value||12,ref=nowRef(),d0=new Date(S.day+'T00:00:00');
+  const at=(p,H)=>p.inAt&&p.inAt<=H&&(p.outAt?p.outAt>H:(H<=ref&&(H-p.inAt)/36e5<=maxH+4));
+  const hrs=[];for(let h=0;h<24;h++){const H=new Date(d0.getTime()+h*36e5);if(H<=ref)hrs.push({h,H})}
+  const depts=[...new Set(rows.map(p=>p.dept))].sort();
+  const cnt=(list,H)=>new Set(list.filter(p=>at(p,H)).map(p=>p.uid||p.name)).size;
+  const tot=hrs.map(x=>cnt(rows,x.H));
+  // trim leading/trailing empty hours
+  let a=0,b=hrs.length-1;while(a<b&&!tot[a])a++;while(b>a&&!tot[b])b--;
+  const cols=hrs.slice(a,b+1),T=tot.slice(a,b+1),peak=Math.max(0,...T),pk=T.indexOf(peak);
+  const lab=h=>(h%12||12)+(h<12?'a':'p');
+  if(!cols.length||!peak)return '<div class="empty">No one punched in for this selection.</div>';
+  let h=`<div class="kpis"><div class="kpi"><div class="l">Peak headcount</div><div class="v in">${peak}</div></div><div class="kpi"><div class="l">Peak hour</div><div class="v">${lab(cols[pk].h)}</div></div><div class="kpi"><div class="l">${isToday()?'In now':'Last hour'}</div><div class="v">${T[T.length-1]}</div></div><div class="kpi"><div class="l">Departments</div><div class="v">${depts.length}</div></div></div>`;
+  h+=`<div class="hint" style="margin:0 0 8px">Headcount in the building at the top of each hour (punched in, not yet out). Use the SITE chips and DEPT filter above.</div>`;
+  // bar chart
+  const bw=34,ch=130;
+  h+=`<div class="scroll" style="margin-bottom:14px"><svg width="${cols.length*bw+10}" height="${ch+28}" style="background:#fff;border:1px solid var(--line);border-radius:8px">`+
+    cols.map((c,i)=>{const bh=Math.round(T[i]/peak*(ch-18));return `<rect x="${i*bw+8}" y="${ch-bh}" width="${bw-8}" height="${bh}" fill="${i===pk?'#FFB500':'#351C15'}" rx="3"><title>${lab(c.h)}: ${T[i]}</title></rect><text x="${i*bw+8+(bw-8)/2}" y="${ch-bh-4}" font-size="11" text-anchor="middle" fill="#351C15" font-weight="700">${T[i]}</text><text x="${i*bw+8+(bw-8)/2}" y="${ch+16}" font-size="11" text-anchor="middle" fill="#777">${lab(c.h)}</text>`}).join('')+`</svg></div>`;
+  // dept x hour table
+  h+=`<div class="scroll"><table><thead><tr><th>Site</th><th>Department</th>${cols.map(c=>`<th style="text-align:right">${lab(c.h)}</th>`).join('')}</tr></thead><tbody>`;
+  h+=`<tr style="font-weight:800;background:#f3efe6"><td></td><td>TOTAL</td>${T.map(n=>`<td style="text-align:right">${n}</td>`).join('')}</tr>`;
+  depts.forEach(d=>{const L=rows.filter(p=>p.dept===d),n=cols.map(c=>cnt(L,c.H));if(!Math.max(...n))return;
+    const m=Math.max(...n);
+    h+=`<tr><td>${esc(L[0].site)}</td><td>${esc(d)}</td>${n.map(v=>`<td style="text-align:right;${v?`background:rgba(255,181,0,${(0.12+0.5*v/m).toFixed(2)});font-weight:700`:'color:#bbb'}">${v||'·'}</td>`).join('')}</tr>`});
+  return h+'</tbody></table></div>';
 }
 function boardView(rows){
   const now=rows.filter(inNow),people=new Set(rows.map(p=>p.uid||p.name)),inPpl=new Set(now.map(p=>p.uid||p.name));
