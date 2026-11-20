@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UPS Punch Board</title>
 <style>
-:root{--bg:#f4f1ec;--panel:#fff;--ink:#1f1a14;--mute:#6f675c;--line:#e4ded4;--brand:#351c15;--gold:#ffb500;--good:#1f7a4a;--bad:#c0392b;--warn:#b45309;--soft:#faf8f4}
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2025;--mute:#6b7280;--line:#e3e5ea;--brand:#2b2f36;--gold:#84d61b;--good:#1f7a4a;--bad:#c0392b;--warn:#e86a00;--soft:#fafbfc}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 header{background:var(--brand);color:#fff;padding:12px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;position:sticky;top:0;z-index:5}
@@ -13,20 +13,20 @@ header h1{margin:0;font-size:17px;letter-spacing:.5px}
 header h1 span{color:var(--gold)}
 header .sp{flex:1}
 header label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;display:flex;flex-direction:column;gap:2px}
-header input,header select{background:#4a2a20;color:#fff;border:1px solid #6b4436;border-radius:6px;padding:5px 8px;font:inherit}
+header input,header select{background:#3b4049;color:#fff;border:1px solid #555b65;border-radius:6px;padding:5px 8px;font:inherit}
 button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:700}
 button.pri{background:var(--gold);border-color:var(--gold);color:#1a1a1a}
 button:disabled{opacity:.5;cursor:wait}
-.stat{font-size:12px;color:#e9dccf;max-width:420px}
+.stat{font-size:12px;color:#d6dae0;max-width:420px}
 .stat.bad{color:#ffb4ab}
 main{padding:14px 20px;max-width:1500px;margin:0 auto}
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--brand);margin-bottom:12px}
-.tab{padding:9px 16px;border-radius:8px 8px 0 0;background:#e6e1d8;cursor:pointer;font-weight:800;font-size:13px;color:var(--mute)}
+.tab{padding:9px 16px;border-radius:8px 8px 0 0;background:#e6e8ec;cursor:pointer;font-weight:800;font-size:13px;color:var(--mute)}
 .tab.on{background:var(--brand);color:#fff}
 .tab .bdg{display:inline-block;background:var(--bad);color:#fff;border-radius:9px;font-size:11px;padding:0 7px;margin-left:6px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:12px}
 .bar b{font-size:11px;letter-spacing:.6px;color:var(--brand)}
-.chip{border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:700;font-size:13px;background:#f1eee8;color:var(--mute);user-select:none}
+.chip{border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:700;font-size:13px;background:#f1f2f4;color:var(--mute);user-select:none}
 .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .chip small{font-weight:600;opacity:.85;margin-left:4px}
 .bar input,.bar select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px}
@@ -55,7 +55,7 @@ th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:n
 th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer}
 .scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
 .tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800}
-.t-miss{background:#fde2e1;color:var(--bad)}.t-dbl{background:#efe4ff;color:#5b2ca0}.t-far{background:#fff1d6;color:var(--warn)}.t-short{background:#e5f0ff;color:#1d4f91}.t-man{background:#eee;color:#555}.t-out{background:#e3f4ea;color:var(--good)}.t-in{background:#fff1d6;color:var(--warn)}
+.t-miss{background:#fde2e1;color:var(--bad)}.t-dbl{background:#e3f1ff;color:#1e90ff}.t-far{background:#fff0e0;color:var(--warn)}.t-short{background:#e3f1ff;color:#0b63c9}.t-man{background:#eee;color:#555}.t-out{background:#e3f4ea;color:var(--good)}.t-in{background:#fff0e0;color:var(--warn)}
 .tcbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:13px}
 .tcp{display:grid!important;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center}
 .tcp .h{font-size:10.5px;font-weight:800;color:var(--mute);text-transform:uppercase}
@@ -229,9 +229,9 @@ function issuesView(list){
   const key={issue:x=>x.t,site:x=>x.p.site,dept:x=>x.p.dept,name:x=>x.p.name,in:x=>(x.p.inD||'')+(x.p.inT||''),tot:x=>x.p.tot};
   const f=key[S.sort.k]||key.issue;list=list.slice().sort((a,b)=>{const A=f(a),B=f(b);return(A>B?1:A<B?-1:0)*S.sort.d||a.p.name.localeCompare(b.p.name)});
   let h=`<div class="kpis"><div class="kpi"><div class="l">Missing punches</div><div class="v" style="color:var(--bad)">${cnt('miss')}</div></div>
-    <div class="kpi"><div class="l">Double / overlapping</div><div class="v" style="color:#5b2ca0">${cnt('dbl')}</div></div>
+    <div class="kpi"><div class="l">Double / overlapping</div><div class="v" style="color:#1e90ff">${cnt('dbl')}</div></div>
     <div class="kpi"><div class="l">Too far apart</div><div class="v" style="color:var(--warn)">${cnt('far')}</div></div>
-    <div class="kpi"><div class="l">Too short</div><div class="v" style="color:#1d4f91">${cnt('short')}</div></div></div>`;
+    <div class="kpi"><div class="l">Too short</div><div class="v" style="color:#0b63c9">${cnt('short')}</div></div></div>`;
   if(!list.length)return h+'<div class="empty">✓ No punch issues for this date / filter.</div>';
   h+=`<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button id="btnCsv">EXPORT CSV</button></div><div class="scroll"><table><thead><tr>
     <th data-k="issue">Issue</th><th data-k="site">Site</th><th data-k="dept">Department</th><th data-k="name">Associate</th><th data-k="in">In</th><th>Out</th><th data-k="tot">Hrs</th><th>Details</th><th>Method / Clock</th></tr></thead><tbody>`;

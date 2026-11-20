@@ -9,7 +9,7 @@
 <style>
 :root{
   --bg:#f4f5f7; --panel:#fff; --ink:#16181d; --mute:#6b7280; --line:#e3e5ea;
-  --brand:#351c15; --accent:#f5b400; --good:#0f7b4b; --bad:#c0362c; --soft:#fafbfc;
+  --brand:#2b2f36; --accent:#84d61b; --good:#0f7b4b; --bad:#c0362c; --soft:#fafbfc;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
@@ -19,17 +19,17 @@ header h1 span{color:var(--accent)}
 header .sp{flex:1}
 .savestat{font-size:12px;color:#c9f0d6;font-weight:600}.savestat.bad{color:#ffb4ab}
 header label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;opacity:.8;display:flex;flex-direction:column;gap:2px}
-header select,header input{background:#4a2a20;color:#fff;border:1px solid #6b4436;border-radius:6px;padding:5px 8px;font:inherit}
+header select,header input{background:#3b4049;color:#fff;border:1px solid #555b65;border-radius:6px;padding:5px 8px;font:inherit}
 button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:600}
 button.pri{background:var(--accent);border-color:var(--accent);color:#1a1a1a}
 button:hover{filter:brightness(.96)}
 button:disabled{opacity:.45;cursor:not-allowed}
-header button{border-color:#6b4436;background:#4a2a20;color:#fff}
+header button{border-color:#555b65;background:#3b4049;color:#fff}
 header button.pri{background:var(--accent);color:#1a1a1a;border-color:var(--accent)}
 main{padding:16px 20px;max-width:1400px;margin:0 auto}
 #drop{border:2px dashed #b9bec8;border-radius:12px;background:var(--panel);text-align:center;padding:60px 20px;color:var(--mute);cursor:pointer;transition:.15s}
 #drop.small{padding:12px;font-size:13px}
-#drop.over{border-color:var(--accent);background:#fffbea;color:var(--ink)}
+#drop.over{border-color:var(--accent);background:#f6fdec;color:var(--ink)}
 #drop b{color:var(--ink);font-size:16px}
 #drop.small b{font-size:13px}
 .files{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -39,7 +39,7 @@ main{padding:16px 20px;max-width:1400px;margin:0 auto}
 .sitebar b{font-size:11px;letter-spacing:.6px;color:var(--brand);margin-right:4px}
 .sc{border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer;font-weight:700;font-size:13px;background:#f1f2f4;color:var(--mute);user-select:none;display:flex;flex-direction:column;line-height:1.15}
 .sc small{font-weight:500;font-size:10px}
-.unas{flex-basis:100%;font-size:12px;background:#fff4e5;border:1px solid #f5c27a;border-radius:6px;padding:6px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.unas{flex-basis:100%;font-size:12px;background:#fff4e5;border:1px solid #ffc58a;border-radius:6px;padding:6px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .unas select{font:inherit;padding:2px 4px}
 .sc.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .sc.all{background:#fff;color:var(--ink);justify-content:center}
@@ -52,7 +52,7 @@ main{padding:16px 20px;max-width:1400px;margin:0 auto}
 .tag{font-size:10px;background:#e0f2e9;color:var(--good);border-radius:4px;padding:1px 5px;font-weight:700}
 .issues{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:12px;margin-bottom:8px}
 .ibox{border:2px solid var(--line);border-radius:8px;background:#fff;padding:10px}
-.ibox.open{border-color:#f5c27a;background:#fffaf0}
+.ibox.open{border-color:#ffc58a;background:#fafef3}
 .ihd{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
 .ihd .cnt{font-size:12px;color:var(--mute)}.ihd .thr{font-size:12px;color:var(--mute);margin-left:auto}
 .ihd .thr input{width:44px;padding:2px 4px;border:1px solid var(--line);border-radius:4px;font:inherit}
@@ -63,12 +63,12 @@ main{padding:16px 20px;max-width:1400px;margin:0 auto}
 tr.okrow td{background:#f0faf4}
 .bdg{display:inline-block;background:var(--bad);color:#fff;border-radius:9px;font-size:10px;padding:0 6px;margin-left:5px;vertical-align:middle}
 .netbox{background:#fff;border:2px solid var(--brand);border-radius:8px;padding:10px;margin:0 0 10px}
-.netbox tr.chg td{background:#fffbea}
+.netbox tr.chg td{background:#f6fdec}
 .tag.rm{background:#fde2e1;color:var(--bad)}
-.tag.t2{background:#fff3c4;color:#8a6100}
+.tag.t2{background:#e6f8cc;color:#4a7a00}
 .rb td input{width:80px}
 .rb .netok{color:var(--good);font-weight:800}.rb .netbad{color:var(--bad);font-weight:800}
-.plan{border:2px solid var(--accent);border-radius:8px;padding:10px;margin:8px 0;background:#fffdf3}
+.plan{border:2px solid var(--accent);border-radius:8px;padding:10px;margin:8px 0;background:#fafef3}
 .plan .bar{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 tr.mv td{background:#f3fbf6}
 table.log td{font-size:13px}
@@ -87,12 +87,12 @@ table.orig{border:2px solid #000}
 table.orig th{background:#fff;color:#000;border:1px solid #000;font-size:11px;padding:8px 6px;text-align:center}
 table.orig td{border:1px solid #000;text-align:center;font-weight:600;height:34px}
 table.orig td:first-child{text-align:center;font-weight:800}
-table.orig tr.tot td{background:#fff2cc}
+table.orig tr.tot td{background:#e6f8cc}
 table.orig tr.zero td{color:#9aa0a8;font-weight:500}
 textarea.notes{min-height:110px;border:2px solid #000;border-radius:0}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 0;border-bottom:2px solid var(--brand)}
 .tab{padding:8px 14px;border-radius:8px 8px 0 0;background:#e6e8ec;cursor:pointer;font-weight:700;font-size:13px;color:var(--mute);user-select:none}
-.tab.has{color:var(--ink);background:#fff3c4}
+.tab.has{color:var(--ink);background:#e6f8cc}
 .tab.on{background:var(--brand);color:#fff}
 .tab small{display:block;font-weight:500;font-size:10px;opacity:.8}
 .panel{background:var(--panel);border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;padding:16px}
@@ -107,18 +107,18 @@ table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 th,td{border:1px solid var(--line);padding:6px 8px;text-align:right;white-space:nowrap}
 th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
 td:first-child,th:first-child{text-align:left}
-tr.tot td{background:#fff3c4;font-weight:800}
+tr.tot td{background:#e6f8cc;font-weight:800}
 tr.zero td{color:#a3a8b2}
 td input{width:90px;border:1px solid var(--line);border-radius:4px;padding:3px 5px;text-align:right;font:inherit}
 .neg{color:var(--bad);font-weight:700}
-.ot{color:#b45309;font-weight:700}
+.ot{color:#e86a00;font-weight:700}
 .scroll{overflow-x:auto}
 details{margin-top:14px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
 details summary{padding:9px 12px;cursor:pointer;font-weight:700}
 details .in{padding:0 12px 12px;max-height:520px;overflow:auto}
 details table td,details table th{font-size:12px;padding:4px 7px}
 textarea{width:100%;min-height:60px;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;margin-top:6px}
-.warn{background:#fff4e5;border:1px solid #f5c27a;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:13px}
+.warn{background:#fff4e5;border:1px solid #ffc58a;border-radius:8px;padding:8px 12px;margin:10px 0;font-size:13px}
 .grid2{display:grid;grid-template-columns:1fr;gap:14px}
 h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px;color:var(--brand)}
 .pos{color:var(--good)}
@@ -129,8 +129,8 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 8px
 }
 
 /* main tabs + New Hires */
-#mainTabs{display:flex;gap:4px;background:#2a1610;padding:6px 20px 0;border-bottom:3px solid var(--accent)}
-#mainTabs button{border:0;border-radius:8px 8px 0 0;background:#4a2a20;color:#e9d8c8;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer}
+#mainTabs{display:flex;gap:4px;background:#1f2227;padding:6px 20px 0;border-bottom:3px solid var(--accent)}
+#mainTabs button{border:0;border-radius:8px 8px 0 0;background:#3b4049;color:#d6dae0;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer}
 #mainTabs button.on{background:var(--accent);color:#1a1a1a}
 body:not(.tab-we) #drop,body:not(.tab-we) #files,body:not(.tab-we) #sitebar,body:not(.tab-we) #view{display:none!important}
 body:not(.tab-we) header>:not(h1){display:none!important}
@@ -157,7 +157,7 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewNH .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
 #viewNH .reqstrip td{border:0;border-bottom:1px solid var(--line)}
 #viewNH .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
-#viewNH .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewNH .banner{background:#eefbdc;border:1px solid #c8ec95;color:#3d6b00;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
 #viewNH .note{font-size:12px;color:var(--mute);margin-top:10px}
 #viewNH .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
 #viewNH .rate-lo{color:var(--bad);font-weight:700}
@@ -185,7 +185,7 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewEOS .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
 #viewEOS .reqstrip td{border:0;border-bottom:1px solid var(--line)}
 #viewEOS .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
-#viewEOS .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewEOS .banner{background:#eefbdc;border:1px solid #c8ec95;color:#3d6b00;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
 #viewEOS .note{font-size:12px;color:var(--mute);margin-top:10px}
 #viewEOS .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
 #viewEOS .rate-lo{color:var(--bad);font-weight:700}
@@ -215,14 +215,14 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewSCH .reqstrip th{background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--line);text-transform:none;font-size:12px}
 #viewSCH .reqstrip td{border:0;border-bottom:1px solid var(--line)}
 #viewSCH .setup input{padding:7px 9px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:620px;font-size:12px;margin:4px 0 10px;display:block}
-#viewSCH .banner{background:#fff6d6;border:1px solid #f1dc8d;color:#6a5200;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
+#viewSCH .banner{background:#eefbdc;border:1px solid #c8ec95;color:#3d6b00;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px}
 #viewSCH .note{font-size:12px;color:var(--mute);margin-top:10px}
 #viewSCH .nhempty{padding:36px;text-align:center;color:var(--mute);font-size:14px}
 #viewSCH .rate-lo{color:var(--bad);font-weight:700}
 #viewSCH td.n,#viewSCH th.n{text-align:right}
 #viewSCH .rng button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 #viewSCH td.n,#viewSCH th.n{text-align:center}
-#viewSCH #scGrid td.sel{background:#fff6d6}
+#viewSCH #scGrid td.sel{background:#eefbdc}
 #viewSCH #scGrid th.sel{background:var(--accent);color:#1a1a1a}
 #viewSCH #scGrid td[data-d]{cursor:pointer}
 body.tab-we.welocked #drop,body.tab-we.welocked #files,body.tab-we.welocked #sitebar,body.tab-we.welocked #view{display:none!important}
@@ -232,7 +232,7 @@ body.tab-we.welocked #weLock{display:block}
 #weLock input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin:12px 0}
 #weLock button{width:100%;padding:10px;font-size:14px}
 #weLock .err{color:var(--bad);font-size:13px;min-height:18px}
-#nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
+#nhTip{position:fixed;pointer-events:none;background:#1d2025;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
 body.embed header,body.embed #mainTabs{display:none!important}
 #viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
 </style>
@@ -244,7 +244,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <label>Week Ending<select id="week"></select></label>
   <div class="sp"></div>
   <span id="saveStat" class="savestat"></span>
-  <a href="/punches/" style="color:#ffb500;font-weight:700;font-size:13px;text-decoration:none;margin-right:4px" title="Live who's-punched-in board">PUNCH BOARD ↗</a>
+  <a href="/punches/" style="color:#84d61b;font-weight:700;font-size:13px;text-decoration:none;margin-right:4px" title="Live who's-punched-in board">PUNCH BOARD ↗</a>
   <button class="pri" id="btnSync" title="Load this week from uAttend (Google Sheets); refreshes yesterday + today live">⟳ SYNC</button>
   <button id="btnCloud" title="uAttend / Google Sheets settings">☁</button>
   <button id="btnBackup" title="Download a backup of all saved days (drop it back in to restore)">BACKUP</button>
@@ -1440,7 +1440,7 @@ const NH_MAPS={
 const NH_SITES={'3.0':'Missouri','4.0':'New York','5.0':'South New Jersey','6.0':'Ohio','7.0':'Florida','10.0':'Illinois','12.0':'Washington','13.0':'Atlanta','15.0':'North Carolina','18.0':'Tennessee','19.0':'North Texas','23.0':'North New Jersey','26.0':'South Carolina','101.5':'roadies'};
 const NH_SLUG={status:'status',shift:'sda8290dd7',pick:'sc418c1d53',type:'s0d3ee7089',ss:'sd0332b1b4'};
 const NH={rows:[],req:[],reqMsg:'',site:'',shift:'',from:'',to:'',sched:false,sample:false};
-const NH_COL={started:'#2a78d6',noshow:'#eb6834',sched:'#a8a6a0',req:'#2a9d8f'};
+const NH_COL={started:'#1e90ff',noshow:'#ff7a00',sched:'#a3a8b2',req:'#84d61b'};
 const isoToday=()=>new Date().toLocaleDateString('en-CA');
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
@@ -1615,7 +1615,7 @@ function nhChart(el,cats,series,o){
   const y=v=>T+(H-T-B)*(1-v/top),base=y(0);
   const bw=Math.max(3,Math.min(24,(slot-8)/k-2)),gw=k*bw+(k-1)*2;
   let g='';
-  for(let v=0;v<=top+1e-9;v+=step){g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${Number.isInteger(v)?v:v.toFixed(1)}</text>`}
+  for(let v=0;v<=top+1e-9;v+=step){g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e3e5ea" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6b7280">${Number.isInteger(v)?v:v.toFixed(1)}</text>`}
   const lblStep=Math.max(1,Math.ceil(34/slot));
   let bars='',hits='',xl='';
   cats.forEach((c,i)=>{
@@ -1624,12 +1624,12 @@ function nhChart(el,cats,series,o){
       const v=s.vals[i];if(!v)return;
       const bx=x0+j*(bw+2),by=y(v),h=base-by,r=Math.min(4,h);
       bars+=`<path d="M${bx},${base}V${by+r}Q${bx},${by} ${bx+r},${by}H${bx+bw-r}Q${bx+bw},${by} ${bx+bw},${by+r}V${base}Z" fill="${s.color}"/>`;
-      if(slot>=34&&bw>=9)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1f1a14">${v}</text>`;
+      if(slot>=34&&bw>=9)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1d2025">${v}</text>`;
     });
-    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1f1a14">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6f675c">${c.sub}</text>`;
+    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1d2025">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6b7280">${c.sub}</text>`;
     hits+=`<rect class="hit" data-i="${i}" x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"/>`;
   });
-  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${o.aria}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#bdb5a8" stroke-width="1"/>${bars}${xl}${hits}</svg>`;
+  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${o.aria}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#b9bec8" stroke-width="1"/>${bars}${xl}${hits}</svg>`;
   const svg=el.firstChild;
   svg.onmousemove=e=>{
     const i=e.target.dataset&&e.target.dataset.i;if(i==null){tip.style.display='none';return}
@@ -1720,7 +1720,7 @@ const store={get:k=>{try{return localStorage.getItem('we_'+k)}catch(e){return nu
 const NH_EMBED={nhUrl:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb3o9sAWy24vBNgn2t5UWNc5_Yk_ZHn6cN3Y4CGOS_2DtEw/exec',nhTok:'ups-K3XJWzFtm6iSQWjP8NhbqZm_'};
 const conn=()=>({url:store.get('nhUrl')||NH_EMBED.nhUrl,tok:store.get('nhTok')||NH_EMBED.nhTok});
 const E={rows:[],site:'',line:'',shift:'',meas:'best',split:'line',weeks:13,loaded:false,busy:false,pulled:'',since:''};
-const COL={req:'#a8a6a0',act:'#2a78d6',plan:'#a8a6a0',pph:'#2a9d8f'};
+const COL={req:'#a3a8b2',act:'#1e90ff',plan:'#a3a8b2',pph:'#ff7a00'};
 const mdOf=iso=>iso.slice(5,7)+'/'+iso.slice(8,10);
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
@@ -1795,15 +1795,15 @@ function chart(el,cats,series,o){
   const step=niceStep(max/4),top=Math.ceil(max/step)*step;
   const y=v=>T+(H-T-B)*(1-v/top),base=y(0);
   const bw=Math.max(3,Math.min(22,(slot-8)/k-2)),gw=k*bw+(k-1)*2;
-  let g='';for(let v=0;v<=top+1e-9;v+=step)g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${v>=1000?(v/1000)+'k':Number.isInteger(v)?v:v.toFixed(1)}</text>`;
+  let g='';for(let v=0;v<=top+1e-9;v+=step)g+=`<line x1="${L}" x2="${TW-R}" y1="${y(v)}" y2="${y(v)}" stroke="#e3e5ea"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6b7280">${v>=1000?(v/1000)+'k':Number.isInteger(v)?v:v.toFixed(1)}</text>`;
   const lblStep=Math.max(1,Math.ceil(36/slot));let bars='',hits='',xl='';
   cats.forEach((c,i)=>{const x0=L+i*slot+(slot-gw)/2;
     series.forEach((s,j)=>{const v=s.vals[i];if(!v)return;const bx=x0+j*(bw+2),by=y(v),h=base-by,r=Math.min(4,h);
       bars+=`<path d="M${bx},${base}V${by+r}Q${bx},${by} ${bx+r},${by}H${bx+bw-r}Q${bx+bw},${by} ${bx+bw},${by+r}V${base}Z" fill="${s.color}"/>`;
-      if(slot>=40&&bw>=10)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1f1a14">${Math.round(v)}</text>`});
-    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1f1a14">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="${c.badSub?'#c0362c':'#6f675c'}">${c.sub||''}</text>`;
+      if(slot>=40&&bw>=10)bars+=`<text x="${bx+bw/2}" y="${by-4}" text-anchor="middle" font-size="10" fill="#1d2025">${Math.round(v)}</text>`});
+    if(i%lblStep===0)xl+=`<text x="${L+i*slot+slot/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="#1d2025">${c.label}</text><text x="${L+i*slot+slot/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="${c.badSub?'#c0362c':'#6b7280'}">${c.sub||''}</text>`;
     hits+=`<rect data-i="${i}" x="${L+i*slot}" y="${T}" width="${slot}" height="${H-T-B}" fill="transparent"/>`});
-  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${esc(o.aria||'')}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#bdb5a8"/>${bars}${xl}${hits}</svg>`;
+  el.innerHTML=`<svg width="${TW}" height="${H}" viewBox="0 0 ${TW} ${H}" role="img" aria-label="${esc(o.aria||'')}">${g}<line x1="${L}" x2="${TW-R}" y1="${base}" y2="${base}" stroke="#b9bec8"/>${bars}${xl}${hits}</svg>`;
   const svg=el.firstChild;
   svg.onmousemove=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i==null){tip.style.display='none';return}const c=cats[+i];
     tip.innerHTML=`<b>${c.tip}</b><br>`+series.map(s=>`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};margin-right:6px"></span>${s.name}: ${r1(s.vals[+i])}`).join('<br>')+(c.extra?'<br>'+c.extra:'');
@@ -1864,7 +1864,7 @@ const EMB={url:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb
 const conn=()=>({url:store.get('nhUrl')||EMB.url,tok:store.get('nhTok')||EMB.tok});
 const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const SHIFTS=['AM','MID','PM','Hub','(no shift)'];
-const SHC={AM:'#2a78d6',MID:'#e0a400',PM:'#5b2ca0',Hub:'#2a9d8f','(no shift)':'#a8a6a0'};
+const SHC={AM:'#1e90ff',MID:'#ff7a00',PM:'#84d61b',Hub:'#3b4049','(no shift)':'#a3a8b2'};
 const C={rows:[],loaded:false,busy:false,site:'',dept:'',pos:'',role:'',shift:'',q:'',w2:true,we:'',day:new Date().getDay(),pulled:''};
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
@@ -1919,10 +1919,10 @@ function render(){
   // stacked-by-shift bars per day
   const W=Math.max($('scChart').clientWidth||700,360),H=230,L=44,B=34,T=14,max=Math.max(1,...dayN.map(c=>c.on)),slot=(W-L-10)/7,bw=Math.min(54,slot*.6);
   const y=v=>T+(H-T-B)*(1-v/max);let g='';
-  for(let k=0;k<=4;k++){const v=Math.round(max*k/4);g+=`<line x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="#e4ded4"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6f675c">${v}</text>`}
+  for(let k=0;k<=4;k++){const v=Math.round(max*k/4);g+=`<line x1="${L}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="#e3e5ea"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6b7280">${v}</text>`}
   DAYS.forEach((d,i)=>{let acc=0;const x=L+i*slot+(slot-bw)/2;
     shifts.forEach(s=>{const v=cnt(rows.filter(r=>r.shift===s),i).on;if(!v)return;g+=`<rect x="${x}" y="${y(acc+v)}" width="${bw}" height="${y(acc)-y(acc+v)}" fill="${SHC[s]||'#888'}"><title>${d} · ${s}: ${v}</title></rect>`;acc+=v});
-    g+=`<text x="${x+bw/2}" y="${y(acc)-5}" text-anchor="middle" font-size="11" font-weight="700" fill="#1f1a14">${acc}</text><text x="${x+bw/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="${i===C.day?'#c0362c':'#1f1a14'}" font-weight="${i===C.day?700:400}">${d.slice(0,3)}</text><text x="${x+bw/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6f675c">${dates[i].slice(5,7)}/${dates[i].slice(8)}</text>`});
+    g+=`<text x="${x+bw/2}" y="${y(acc)-5}" text-anchor="middle" font-size="11" font-weight="700" fill="#1d2025">${acc}</text><text x="${x+bw/2}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="${i===C.day?'#c0362c':'#1d2025'}" font-weight="${i===C.day?700:400}">${d.slice(0,3)}</text><text x="${x+bw/2}" y="${H-B+28}" text-anchor="middle" font-size="10" fill="#6b7280">${dates[i].slice(5,7)}/${dates[i].slice(8)}</text>`});
   $('scChart').innerHTML=`<svg width="${W}" height="${H}" role="img" aria-label="Scheduled per day by shift">${g}</svg>`;
   $('scLeg').innerHTML=shifts.map(s=>`<span><i style="background:${SHC[s]||'#888'}"></i>${esc(s)}</span>`).join('');
   // lists for the chosen day
