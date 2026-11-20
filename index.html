@@ -225,6 +225,13 @@ body:not(.tab-we) header>:not(h1){display:none!important}
 #viewSCH #scGrid td.sel{background:#fff6d6}
 #viewSCH #scGrid th.sel{background:var(--accent);color:#1a1a1a}
 #viewSCH #scGrid td[data-d]{cursor:pointer}
+body.tab-we.welocked #drop,body.tab-we.welocked #files,body.tab-we.welocked #sitebar,body.tab-we.welocked #view{display:none!important}
+body.tab-we.welocked header>:not(h1){display:none!important}
+#weLock{display:none;max-width:420px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px;text-align:center}
+body.tab-we.welocked #weLock{display:block}
+#weLock input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin:12px 0}
+#weLock button{width:100%;padding:10px;font-size:14px}
+#weLock .err{color:var(--bad);font-size:13px;min-height:18px}
 #nhTip{position:fixed;pointer-events:none;background:#1f1a14;color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;display:none;z-index:20;line-height:1.55}
 body.embed header,body.embed #mainTabs{display:none!important}
 #viewPR iframe{width:100%;height:calc(100vh - 130px);border:0;background:#fff}
@@ -247,6 +254,8 @@ body.embed header,body.embed #mainTabs{display:none!important}
 </header>
 <nav id="mainTabs"><button data-t="pr" class="on">PUNCH REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="sch">SCHEDULE</button><button data-t="we">W.E. REPORT</button></nav>
 <main>
+  <div id="weLock"><div style="font-size:34px">🔒</div><h2 style="margin:6px 0 2px">W.E. REPORT IS LOCKED</h2><div class="hint">Enter the password. It stays unlocked on this computer for 12 hours.</div>
+    <form id="weLockF"><input type="password" id="weLockPw" placeholder="Password" autocomplete="current-password"><button class="pri" type="submit">UNLOCK</button></form><div class="err" id="weLockErr"></div></div>
   <div id="drop"><b>DROP TIMECARD EXPORT(S) HERE</b><br>UPS Time Clock CSV / XLSX — one per day, or drop the whole week at once<br><small>or click to browse</small></div>
   <input type="file" id="fi" multiple accept=".csv,.xlsx,.xls,.json" hidden>
   <div class="files" id="files"></div>
@@ -395,7 +404,7 @@ drop.onclick=()=>fi.click();
 fi.onchange=e=>{load([...e.target.files]);fi.value=''};
 ['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
 ['dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();if(t==='drop'||e.target===drop)drop.classList.remove('over')}));
-document.addEventListener('drop',e=>{const fs=[...e.dataTransfer.files];if(document.body.classList.contains('tab-nh')){if(fs[0]&&window.NHTAB)NHTAB.loadFile(fs[0]);return}if(document.body.classList.contains('tab-we'))load(fs)});
+document.addEventListener('drop',e=>{const fs=[...e.dataTransfer.files];if(document.body.classList.contains('tab-nh')){if(fs[0]&&window.NHTAB)NHTAB.loadFile(fs[0]);return}if(document.body.classList.contains('tab-we')&&weUnlocked)load(fs)});
 
 async function load(list){
   for(const f of list){
@@ -1231,20 +1240,36 @@ function restore(d,merge){
   if(d.cfg&&!merge){const c=d.cfg;if(c.RATES){RATES=c.RATES;saveRates()}if(c.SAL){SAL=c.SAL;saveSal()}if(c.FEE){FEE=c.FEE;saveFee()}if(c.TAX){TAX=c.TAX;saveTax()}if(c.ALIAS){ALIAS=c.ALIAS;saveAlias();resite()}}
   resite();
 }
+/* password lock (password checked on Netlify; WE_PASSWORD env var) */
+const WELOCK={get(){try{const o=JSON.parse(localStorage.getItem('we_lock')||'null');return o&&o.exp>Date.now()?o:null}catch(e){return null}},
+  set(o){try{localStorage.setItem('we_lock',JSON.stringify(o))}catch(e){}},clear(){try{localStorage.removeItem('we_lock')}catch(e){}}};
+const weHdr=()=>{const o=WELOCK.get();return o?{'x-we-token':o.token}:{}};
+let weUnlocked=false;
+function weLockUI(){document.body.classList.toggle('welocked',!weUnlocked)}
+async function weUnlock(pw){
+  const e=document.getElementById('weLockErr');e.textContent='Checking…';
+  try{const r=await fetch('/api/unlock',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:pw})});const o=await r.json();
+    if(!o.ok){e.textContent=o.error||'Wrong password';return}
+    WELOCK.set({token:o.token,exp:o.exp});weUnlocked=true;e.textContent='';document.getElementById('weLockPw').value='';weLockUI();
+    try{const d=JSON.parse(localStorage.getItem('we_days')||'null');if(d){restore(d,false);lastSaved=localStorage.getItem('we_days')}}catch(x){}
+    if(await loadRemote())render();else render();
+  }catch(x){e.textContent='Could not reach the site to check the password.'}
+}
+document.getElementById('weLockF').onsubmit=ev=>{ev.preventDefault();weUnlock(document.getElementById('weLockPw').value)};
 /* shared save on Netlify: everyone on the link sees the same saved days */
 const ONLINE=/^https?:/.test(location.protocol)&&!/^(localhost|127\.)/.test(location.hostname);
 let remoteT=null,remoteBusy=false,lastRemote='';
 function saveRemote(j){
   if(!ONLINE)return;clearTimeout(remoteT);
   remoteT=setTimeout(async()=>{if(remoteBusy||j===lastRemote)return;remoteBusy=true;const st=document.getElementById('saveStat');
-    try{const r=await fetch('/api/state',{method:'POST',headers:{'content-type':'application/json'},body:j});const o=await r.json();
+    try{if(!weUnlocked)return;const r=await fetch('/api/state',{method:'POST',headers:{'content-type':'application/json',...weHdr()},body:j});const o=await r.json();
       if(!o.ok)throw new Error(o.error||'save failed');lastRemote=j;if(st)st.textContent=st.textContent.replace(/ ·.*$/,'')+' · ☁ shared';}
     catch(e){if(st){st.textContent='⚠ Saved on this computer only — shared save failed ('+e.message+')';st.className='savestat bad'}}
     finally{remoteBusy=false}},1500);
 }
 async function loadRemote(){
-  if(!ONLINE)return false;
-  try{const r=await fetch('/api/state',{cache:'no-store'});const d=await r.json();
+  if(!ONLINE||!weUnlocked)return false;
+  try{const r=await fetch('/api/state',{cache:'no-store',headers:weHdr()});if(r.status===401){WELOCK.clear();weUnlocked=false;weLockUI();return false}const d=await r.json();
     if(!d||!Array.isArray(d.files))return false;
     let local=null;try{local=JSON.parse(localStorage.getItem('we_days')||'null')}catch(e){}
     if(local&&local.saved&&d.saved&&local.saved>d.saved)return false; // this computer has newer work: it will upload it
@@ -1253,6 +1278,7 @@ async function loadRemote(){
 }
 let saveT=null,lastSaved='';
 function saveNow(){
+  if(!weUnlocked)return;
   const st=document.getElementById('saveStat');
   try{const snap=snapshot(),j=JSON.stringify(snap);if(j.replace(/"saved":"[^"]*"/,'')!==lastSaved.replace(/"saved":"[^"]*"/,'')){localStorage.setItem('we_days',j);lastSaved=j;saveRemote(j)}
     const n=S.files.length;st.textContent=n?`✓ ${n} day${n>1?'s':''} saved ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'';st.className='savestat';
@@ -1266,7 +1292,8 @@ document.getElementById('btnBackup').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(snapshot())],{type:'application/json'}));
   a.download='WE_Backup_'+iso(new Date())+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
 };
-try{const d=JSON.parse(localStorage.getItem('we_days')||'null');if(d){restore(d,false);lastSaved=localStorage.getItem('we_days')}}catch(e){}
+weUnlocked=!ONLINE||!!WELOCK.get();weLockUI();
+if(weUnlocked){try{const d=JSON.parse(localStorage.getItem('we_days')||'null');if(d){restore(d,false);lastSaved=localStorage.getItem('we_days')}}catch(e){}}
 render();
 /* ---------- uAttend sync (Google Sheets web app) ---------- */
 const UATTEND_SYNC={url:'',token:'',account:''}; // fill in to build the Google Sheets link in for everyone
@@ -1383,7 +1410,7 @@ document.getElementById('btnSync').onclick=()=>{
 (async()=>{
   if(ONLINE){try{const c=await (await fetch('/api/config',{cache:'no-store'})).json();if(c&&c.url&&c.token){CLOUD.url=c.url;CLOUD.token=c.token;if(!CLOUD.account)CLOUD.account=c.account||'';CLOUD.builtin=true;saveCloud()}}catch(e){}}
   if(await loadRemote())render();
-  if(CLOUD.auto&&CLOUD.url&&CLOUD.token)cloudLoad(iso(weSat(new Date())),false,true);
+  if(weUnlocked&&CLOUD.auto&&CLOUD.url&&CLOUD.token)cloudLoad(iso(weSat(new Date())),false,true);
 })();
 /* ===================== NEW HIRES TAB (from UPS Peak dashboard) ===================== */
 (function(){

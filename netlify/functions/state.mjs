@@ -2,11 +2,13 @@
 // GET  /api/state  -> latest saved data
 // POST /api/state  -> save (also keeps one backup copy per day)
 import { getStore } from "@netlify/blobs";
+import { valid } from "../lib/lock.mjs";
 
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 
 export default async (req) => {
+  if (!valid(req)) return json({ ok: false, locked: true, error: "locked" }, 401);
   const store = getStore({ name: "ups-we-report", consistency: "strong" });
 
   if (req.method === "GET") {
