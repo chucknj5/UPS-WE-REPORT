@@ -245,7 +245,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <button id="btnClear">CLEAR</button>
   <button class="pri" id="btnXlsx">EXPORT EXCEL</button>
 </header>
-<nav id="mainTabs"><button data-t="we" class="on">W.E. REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="sch">SCHEDULE</button><button data-t="pr">PUNCH REPORT</button></nav>
+<nav id="mainTabs"><button data-t="pr" class="on">PUNCH REPORT</button><button data-t="nh">NEW HIRES</button><button data-t="eos">EOS REPORT</button><button data-t="sch">SCHEDULE</button><button data-t="we">W.E. REPORT</button></nav>
 <main>
   <div id="drop"><b>DROP TIMECARD EXPORT(S) HERE</b><br>UPS Time Clock CSV / XLSX — one per day, or drop the whole week at once<br><small>or click to browse</small></div>
   <input type="file" id="fi" multiple accept=".csv,.xlsx,.xls,.json" hidden>
@@ -1935,7 +1935,7 @@ window.SCHTAB={show:()=>{if(!C.loaded&&!C.busy){render();load('schedulesheet')}e
   };
   document.querySelectorAll('#mainTabs button').forEach(b=>b.onclick=()=>show(b.dataset.t));
   const emb=/[?&]embed=nh/.test(location.search);
-  if(emb){document.body.classList.add('embed');show('nh')}else show('we');
+  if(emb){document.body.classList.add('embed');show('nh')}else show('pr');
 })();
 </script>
 </body>
