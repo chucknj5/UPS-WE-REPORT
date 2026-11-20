@@ -281,7 +281,7 @@ body.embed header,body.embed #mainTabs{display:none!important}
   <div class="kpis" id="eoKpis" style="margin-top:18px"></div>
   <div class="grid">
     <div class="card"><h2>Staffing by Week</h2><p class="sub" id="eoStSub">Average per report day: requested vs actual. Hover for fill %.</p><div class="legend" id="eoLegS"></div><div class="chwrap" id="eoStaff"></div></div>
-    <div class="card"><h2>PPH by Week</h2><p class="sub">Actual PPH (volume ÷ actual hours) vs plan PPH (planned volume ÷ planned hours).</p><div class="legend" id="eoLegP"></div><div class="chwrap" id="eoPph"></div></div>
+    <div class="card"><h2>PPH by Week</h2><p class="sub">Actual PPH (volume ÷ actual hours) vs plan PPH (planned volume ÷ planned hours, from the same reports that have actuals). % under each week = actual vs plan.</p><div class="legend" id="eoLegP"></div><div class="chwrap" id="eoPph"></div></div>
   </div>
   <h2 style="margin:6px 0 0;font-size:16px" id="eoSplitH">By Department</h2>
   <div id="eoGroups"></div>
@@ -1663,7 +1663,7 @@ async function load(action,months){
   try{
     const j=await call(action,months);
     E.rows=parse(j);E.loaded=true;E.pulled=j.pulled||'';E.since=j.since||'';
-    say(`✓ ${E.rows.length.toLocaleString()} reports ${E.since?'since '+E.since:'(all history)'}${E.pulled?' · last SmartSuite pull '+esc(E.pulled):''}${action==='eos'?' · saved to Google Sheets (EOS tab)':''}`);
+    say(`✓ ${E.rows.length.toLocaleString()} reports ${E.since?'since '+E.since:'(all history)'}${E.pulled?' · last SmartSuite pull '+esc(String(E.pulled).split(' · ')[0]):''}${action==='eos'?' · saved to Google Sheets (EOS tab)':''}`);
     fill();render();
     if(action==='eossheet'&&!E.rows.length)say('No EOS rows saved in Google Sheets yet — click ⟳ Sync from SmartSuite.');
   }catch(e){say('<span style="color:var(--bad)">✗ '+esc(e.message)+'</span>')}
@@ -1681,12 +1681,12 @@ function rowsF(){
 }
 function rq(r){if(E.meas==='start')return[r.sReq,r.sAct];if(E.meas==='full')return[r.fReq,r.fAct];if(E.meas==='plan')return[r.planHC,r.sAct||r.fAct];return r.sReq||r.sAct?[r.sReq,r.sAct]:[r.fReq,r.fAct]}
 function agg(rows){
-  const a={req:0,act:0,fReq:0,fAct:0,days:new Set(),aVol:0,aHrs:0,pVol:0,pHrs:0,vol:0,hrs:0,n:rows.length,nh:0};
+  const a={req:0,act:0,fReq:0,fAct:0,days:new Set(),aVol:0,aHrs:0,pVol:0,pHrs:0,mpVol:0,mpHrs:0,vol:0,hrs:0,n:rows.length,nh:0};
   const byDay={};
   rows.forEach(r=>{const[q,t]=rq(r);a.req+=q;a.act+=t;if(q>0&&t>0){a.fReq+=q;a.fAct+=t}if(q||t)a.days.add(r.date);
-    if(r.aVol>0&&r.aHrs>0){a.aVol+=r.aVol;a.aHrs+=r.aHrs}if(r.pVol>0&&r.pHrs>0){a.pVol+=r.pVol;a.pHrs+=r.pHrs}a.vol+=r.aVol;a.hrs+=r.aHrs;a.nh+=r.nh});
+    if(r.aVol>0&&r.aHrs>0){a.aVol+=r.aVol;a.aHrs+=r.aHrs}if(r.pVol>0&&r.pHrs>0){a.pVol+=r.pVol;a.pHrs+=r.pHrs;if(r.aVol>0&&r.aHrs>0){a.mpVol+=r.pVol;a.mpHrs+=r.pHrs}}a.vol+=r.aVol;a.hrs+=r.aHrs;a.nh+=r.nh});
   const d=a.days.size;
-  return {avgReq:d?a.req/d:null,avgAct:d?a.act/d:null,fill:pct(a.fAct,a.fReq),pph:a.aHrs?a.aVol/a.aHrs:null,plan:a.pHrs?a.pVol/a.pHrs:null,vol:a.vol,hrs:a.hrs,days:d,n:a.n,nh:a.nh};
+  return {avgReq:d?a.req/d:null,avgAct:d?a.act/d:null,fill:pct(a.fAct,a.fReq),pph:a.aHrs?a.aVol/a.aHrs:null,plan:a.mpHrs?a.mpVol/a.mpHrs:(a.pHrs?a.pVol/a.pHrs:null),vol:a.vol,hrs:a.hrs,days:d,n:a.n,nh:a.nh};
 }
 function weeksOf(rows){
   if(!rows.length)return[];
