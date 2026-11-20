@@ -1673,7 +1673,7 @@ function fill(){
   const opt=(id,vals,cur,all,fmt)=>{$(id).innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option value="${esc(v)}" ${v===cur?'selected':''}>${esc(fmt?fmt(v):v)}</option>`).join('')};
   opt('eoSite',[...new Set(E.rows.map(r=>r.site))].sort((a,b)=>siteNum(a)-siteNum(b)||a.localeCompare(b)),E.site,'All sites');
   opt('eoLine',[...new Set(E.rows.map(r=>r.line))].sort(lineSort),E.line,'All departments');
-  opt('eoShift',[...new Set(E.rows.map(r=>r.shift))].sort(shiftSort),E.shift,'All shifts',v=>v||'(none)');
+  opt('eoShift',[...new Set(E.rows.map(r=>r.shift))].filter(Boolean).sort(shiftSort),E.shift,'All shifts');
 }
 function rowsF(){
   const lastWe=weekEnd(today()),from=E.weeks?addDays(lastWe,-(E.weeks*7-1)):'';
