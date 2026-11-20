@@ -79,7 +79,7 @@ th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;le
   <button class="pri" id="btnSync" title="Pull the Punch Report from uAttend now (via Google Sheets)">⟳ SYNC</button>
 </header>
 <main>
-  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div><div class="tab" data-t="out">PUNCHED OUT · TIMECARD<span class="bdg" id="outN" style="display:none;background:var(--good)"></span></div><div class="tab" data-t="hr">HR OVER HR</div><div class="tab" data-t="nh">NEW HIRES</div></div>
+  <div class="tabs"><div class="tab on" data-t="board">WHO'S PUNCHED IN</div><div class="tab" data-t="issues">PUNCH ISSUES<span class="bdg" id="issN" style="display:none"></span></div><div class="tab" data-t="out">PUNCHED OUT · TIMECARD<span class="bdg" id="outN" style="display:none;background:var(--good)"></span></div><div class="tab" data-t="hr">HR OVER HR</div></div>
   <div class="bar" id="filters">
     <b>SITE</b><span id="siteChips"></span>
     <b style="margin-left:8px">DEPT</b><select id="dept"><option value="">All departments</option></select>
@@ -88,7 +88,6 @@ th{background:var(--brand);color:#fff;font-size:11px;text-transform:uppercase;le
     <span id="issCfg" class="hint" style="display:none">Too long over <input id="maxH" type="number" value="12" step="0.5" style="width:60px"> hrs · Double if INs within <input id="dblM" type="number" value="10" style="width:52px"> min · Short under <input id="minM" type="number" value="5" style="width:52px"> min</span>
   </div>
   <div id="view"><div class="empty">Loading punches…</div></div>
-  <iframe id="nhFrame" title="New Hires" style="display:none;width:100%;height:calc(100vh - 150px);border:0;background:#fff"></iframe>
 </main>
 <div id="dlg"></div>
 <script>
@@ -179,10 +178,6 @@ function issues(){
 
 /* ---------- render ---------- */
 function render(){
-  const nh=S.tab==='nh';
-  $('nhFrame').style.display=nh?'':'none';$('view').style.display=nh?'none':'';$('filters').style.display=nh?'none':'';
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.t===S.tab));
-  if(nh){if(!$('nhFrame').getAttribute('src'))$('nhFrame').src='../?embed=nh';return}
   // site chips & dept list from the whole day
   const dayRows=S.rows.filter(p=>(p.inD||p.date)===S.day||(!p.outT&&p.inD<S.day));
   const sites=[...new Set(dayRows.map(p=>p.site))].sort();
