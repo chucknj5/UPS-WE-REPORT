@@ -404,7 +404,7 @@ function pullPunches_(days) {
         const b = j.Body || j, items = b.PunchReportLineItems || [];
         total = b.Total || items.length; got += items.length; page++;
         items.forEach(it => {
-          const dept = String(it.DepartmentName || it.DepartmentCode || '').trim(), sm = dept.match(/^(\d{2})/);
+          const dept = String(it.DepartmentName || it.DepartmentCode || '').trim(), sm = dept.match(/^(\d{2,3}\.\d+|\d{2})/);
           rows.push([isoDay_(it.PunchDate || it.InDate) || day, a.name, String(it.Id || ''), String(it.UserId || ''),
             (String(it.FirstName || '').trim() + ' ' + String(it.LastName || '').trim()).replace(/\s+/g, ' '), String(it.PayrollNumber || ''),
             String(it.DepartmentCode || ''), dept, sm ? sm[1] : '', isoDay_(it.InDate), hhmm_(it.InTime), isoDay_(it.OutDate), hhmm_(it.OutTime),

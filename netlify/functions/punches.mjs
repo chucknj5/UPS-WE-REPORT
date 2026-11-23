@@ -34,7 +34,7 @@ export default async (req) => {
       const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => page(key, d, i + 1)));
       rest.forEach(b => items.push(...(b.PunchReportLineItems || [])));
       items.forEach(it => {
-        const dept = String(it.DepartmentName || it.DepartmentCode || "").trim(), sm = dept.match(/^(\d{2})/);
+        const dept = String(it.DepartmentName || it.DepartmentCode || "").trim(), sm = dept.match(/^(\d{2,3}\.\d+|\d{2})/);
         rows.push([day(it.PunchDate || it.InDate) || d, acct, String(it.Id ?? ""), String(it.UserId ?? ""),
           (String(it.FirstName || "").trim() + " " + String(it.LastName || "").trim()).replace(/\s+/g, " "), String(it.PayrollNumber || ""),
           String(it.DepartmentCode || ""), dept, sm ? sm[1] : "", day(it.InDate), hhmm(it.InTime), it.OutTime ? day(it.OutDate) : "", hhmm(it.OutTime),

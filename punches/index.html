@@ -97,7 +97,10 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addDays=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
 const f2=n=>(+n).toFixed(2);
-const SITE_NAMES={'06':'UPS OH'};
+const SITE_NAMES={'06':'UPS OH','101.5':'ROADIE'};
+/* site = leading number of the department: 06, 10, 13 … but 101.5 / 13.5 / 18.2 stay their own sites (101.5 is NOT site 10) */
+const siteOf=d=>{const m=String(d||'').trim().match(/^(\d{2,3}\.\d+|\d{2})/);return m?m[1]:''};
+const siteCmp=(a,b)=>(parseFloat(a)||999)-(parseFloat(b)||999)||String(a).localeCompare(String(b));
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 function lineOf(dept){const u=(dept||'').toUpperCase();
   if(/ROADIE/.test(u))return'ROADIES';if(/OFFICE|ADMIN|CLERK/.test(u))return'OFFICE';if(/TRANSPORT/.test(u))return'TRANSPORTATION';
@@ -127,7 +130,7 @@ function say(t,bad){const s=$('stat');s.innerHTML=t;s.className='stat'+(bad?' ba
 function parse(data){
   const H=data.head,ix=n=>H.indexOf(n);
   return data.rows.map(r=>({date:r[ix('DATE')],acct:r[ix('ACCOUNT')],id:r[ix('PUNCH ID')],uid:r[ix('USER ID')],name:r[ix('NAME')],payroll:String(r[ix('PAYROLL ID')]||'').trim(),
-    dept:r[ix('DEPARTMENT')],site:r[ix('SITE')]||'??',inD:r[ix('IN DATE')],inT:r[ix('IN TIME')],outD:r[ix('OUT DATE')],outT:r[ix('OUT TIME')],
+    dept:r[ix('DEPARTMENT')],site:siteOf(r[ix('DEPARTMENT')])||r[ix('SITE')]||'??',inD:r[ix('IN DATE')],inT:r[ix('IN TIME')],outD:r[ix('OUT DATE')],outT:r[ix('OUT TIME')],
     tot:+r[ix('TOTAL')]||0,inM:r[ix('IN METHOD')],outM:r[ix('OUT METHOD')],inC:r[ix('IN CLOCK')],outC:r[ix('OUT CLOCK')]}))
     .map(p=>{p.inAt=p.inD&&p.inT?new Date(p.inD+'T'+p.inT+':00'):null;p.outAt=p.outD&&p.outT?new Date(p.outD+'T'+p.outT+':00'):null;p.line=lineOf(p.dept);return p});
 }
@@ -180,7 +183,7 @@ function issues(){
 function render(){
   // site chips & dept list from the whole day
   const dayRows=S.rows.filter(p=>(p.inD||p.date)===S.day||(!p.outT&&p.inD<S.day));
-  const sites=[...new Set(dayRows.map(p=>p.site))].sort();
+  const sites=[...new Set(dayRows.map(p=>p.site))].sort(siteCmp);
   [...S.sites].forEach(s=>{if(!sites.includes(s))S.sites.delete(s)});
   const inBy={};dayRows.forEach(p=>{if(inNow(p))inBy[p.site]=(inBy[p.site]||0)+1});
   $('siteChips').innerHTML=`<span class="chip ${S.sites.size?'':'on'}" data-s="*">ALL</span>`+sites.map(s=>`<span class="chip ${S.sites.has(s)?'on':''}" data-s="${s}">${s}${SITE_NAMES[s]?' '+SITE_NAMES[s].replace(/^UPS\s*/,''):''}<small>${inBy[s]||0} in</small></span>`).join('');
@@ -230,7 +233,7 @@ function boardView(rows){
     <div class="kpi"><div class="l">Punched out</div><div class="v">${outPpl}</div></div>
     <div class="kpi"><div class="l">Hours so far</div><div class="v">${f2(rows.reduce((a,p)=>a+(p.outT?p.tot:Math.max(0,hrsSince(p))),0))}</div></div></div><div class="grid">`;
   const bySite={};rows.forEach(p=>(bySite[p.site]=bySite[p.site]||[]).push(p));
-  Object.keys(bySite).sort().forEach(s=>{
+  Object.keys(bySite).sort(siteCmp).forEach(s=>{
     const rs=bySite[s],inS=rs.filter(inNow),ppl=new Set(rs.map(p=>p.uid||p.name));
     h+=`<div class="site"><h2><span>SITE ${esc(s)}${SITE_NAMES[s]?' · '+esc(SITE_NAMES[s]):''}</span><span class="n" title="Punched in now">${new Set(inS.map(p=>p.uid||p.name)).size} IN</span></h2>
       <div class="sub"><span>${ppl.size} worked today</span><span>${rs.filter(p=>p.outT).length} punched out</span></div>`;
@@ -280,7 +283,7 @@ async function loadTC(pull){
     }else show('⏳ Loading Timecard Report from Google Sheets…');
     const d=await jsonp({action:'data',start:day,end:day},90000),H=d.data.head,ix=n=>H.indexOf(n);
     S.tc.rows=d.data.rows.map(r=>({name:r[ix('NAME')],pay:String(r[ix('PAYROLL')]||''),dept:r[ix('DEPT')],reg:+r[ix('REG')]||0,ot:(+r[ix('OT1')]||0)+(+r[ix('OT2')]||0),
-      tot:+r[ix('TOTAL')]||0,flag:r[ix('FLAG')]||'',site:(String(r[ix('DEPT')]||'').match(/^(\d{2})/)||[])[1]||'??'}));
+      tot:+r[ix('TOTAL')]||0,flag:r[ix('FLAG')]||'',site:siteOf(r[ix('DEPT')])||'??'}));
     S.tc.day=day;S.tc.at=new Date();S.tc.msg='';
   }catch(e){if(S.tc.day!==day)S.tc.rows=[];S.tc.day=day;S.tc.msg='✗ '+e.message}
   finally{S.tc.busy=false;if(S.tab==='out')render()}
@@ -312,7 +315,7 @@ function outView(dayRows){
   if(tc.length){
     h+='<div class="grid">';
     const bySite={};tc.forEach(r=>(bySite[r.site]=bySite[r.site]||[]).push(r));
-    Object.keys(bySite).sort().forEach(s=>{const rs=bySite[s];
+    Object.keys(bySite).sort(siteCmp).forEach(s=>{const rs=bySite[s];
       h+=`<div class="site"><h2><span>SITE ${esc(s)}${SITE_NAMES[s]?' · '+esc(SITE_NAMES[s]):''}</span><span class="n" title="Timecard hours">${f2(sum(rs,r=>r.tot))} HRS</span></h2>
         <div class="sub"><span>${new Set(rs.map(key)).size} on timecard</span><span>REG ${f2(sum(rs,r=>r.reg))}</span><span>OT ${f2(sum(rs,r=>r.ot))}</span></div>`;
       const g={};rs.forEach(r=>{const k=S.byLine?lineOf(r.dept):r.dept;(g[k]=g[k]||[]).push(r)});
