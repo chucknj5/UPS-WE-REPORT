@@ -319,6 +319,12 @@ body.embed header,body.embed #mainTabs{display:none!important}
       <span class="rng" id="eoRng"><button data-w="4">4 wks</button> <button data-w="8">8 wks</button> <button data-w="13" class="on">13 wks</button> <button data-w="26">26 wks</button> <button data-w="0">All loaded</button></span>
     </div>
   </div>
+  <div class="card" style="margin-top:18px"><h2 id="eoWkH">Week by Day</h2>
+    <div class="nhf" style="margin:6px 0 4px"><button class="sec" id="eoWkPrev">◀ Prev week</button><label>Week ending (Sat) <input type="date" id="eoWkWe"></label><button class="sec" id="eoWkNext">Next week ▶</button><span id="eoWkSum" style="font-size:13px;color:var(--mute)"></span></div>
+    <div class="grid" style="margin:8px 0 0">
+      <div><h3 style="margin:4px 0;font-size:14px">Staffing by Day</h3><p class="sub" style="margin:0 0 6px">Requested vs actual for each day (same Staffing setting as below). % under each day = fill rate.</p><div class="legend" id="eoLegDS"></div><div class="chwrap" id="eoDayS"></div></div>
+      <div><h3 style="margin:4px 0;font-size:14px">PPH by Day</h3><p class="sub" style="margin:0 0 6px">Actual PPH vs plan PPH for each day. % under each day = actual vs plan.</p><div class="legend" id="eoLegDP"></div><div class="chwrap" id="eoDayP"></div></div>
+    </div></div>
   <div class="kpis" id="eoKpis" style="margin-top:18px"></div>
   <div class="grid">
     <div class="card"><h2>Staffing by Week</h2><p class="sub" id="eoStSub">Average per report day: requested vs actual. Hover for fill %.</p><div class="legend" id="eoLegS"></div><div class="chwrap" id="eoStaff"></div></div>
@@ -1726,7 +1732,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const store={get:k=>{try{return localStorage.getItem('we_'+k)}catch(e){return null}}};
 const NH_EMBED={nhUrl:'https://script.google.com/macros/s/AKfycbyyqUBJIC4iuC7MgxT9mBnMb3o9sAWy24vBNgn2t5UWNc5_Yk_ZHn6cN3Y4CGOS_2DtEw/exec',nhTok:'ups-K3XJWzFtm6iSQWjP8NhbqZm_'};
 const conn=()=>({url:store.get('nhUrl')||NH_EMBED.nhUrl,tok:store.get('nhTok')||NH_EMBED.nhTok});
-const E={rows:[],site:'',line:'',shift:'',meas:'best',split:'line',weeks:13,loaded:false,busy:false,pulled:'',since:''};
+const E={rows:[],site:'',line:'',shift:'',meas:'best',split:'line',weeks:13,loaded:false,busy:false,pulled:'',since:'',wk:''};
 const COL={req:'#a3a8b2',act:'#1e90ff',plan:'#a3a8b2',pph:'#ff7a00'};
 const mdOf=iso=>iso.slice(5,7)+'/'+iso.slice(8,10);
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
@@ -1827,9 +1833,30 @@ function drawPair(elS,elP,rows,weeks,small){
   chart(elP,weeks.map((w,i)=>{const vs=A[i].pph&&A[i].plan?pct(A[i].pph,A[i].plan):null;return {label:mdOf(w),sub:vs==null?'':vs+'%',badSub:vs!=null&&vs<100,tip:'Week ending '+w,extra:`vs plan: ${vs==null?'—':vs+'%'} · Volume ${Math.round(A[i].vol).toLocaleString()} · Hours ${Math.round(A[i].hrs).toLocaleString()}`}}),sP,{h:small?190:250,minSlot:small?38:48,aria:'PPH by week'});
   return {sS,sP,A};
 }
+/* this week, day by day */
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function renderDays(){
+  if(!E.wk)E.wk=weekEnd(today());$('eoWkWe').value=E.wk;
+  const days=DOW.map((d,i)=>addDays(E.wk,i-6));
+  const rows=E.rows.filter(r=>(!E.site||r.site===E.site)&&(!E.line||r.line===E.line)&&(!E.shift||r.shift===E.shift)&&r.date>=days[0]&&r.date<=days[6]);
+  const byD={};rows.forEach(r=>(byD[r.date]=byD[r.date]||[]).push(r));
+  const A=days.map(d=>agg(byD[d]||[])),wk=agg(rows);
+  $('eoWkH').textContent=`Week by Day — ${mdOf(days[0])} to ${mdOf(days[6])}`;
+  const vsW=wk.pph&&wk.plan?pct(wk.pph,wk.plan):null;
+  $('eoWkSum').innerHTML=rows.length?`Week: fill <b>${wk.fill==null?'—':wk.fill+'%'}</b> · PPH <b>${r1(wk.pph)}</b> vs plan ${r1(wk.plan)}${vsW==null?'':' ('+vsW+'%)'} · ${rows.length} reports`:'No EoS reports for this week with these filters.';
+  const sS=[{name:'Requested',color:COL.req,vals:A.map(a=>a.avgReq)},{name:'Actual',color:COL.act,vals:A.map(a=>a.avgAct)}];
+  chart($('eoDayS'),days.map((d,i)=>({label:DOW[i]+' '+mdOf(d),sub:A[i].fill==null?'':A[i].fill+'%',badSub:A[i].fill!=null&&A[i].fill<90,tip:DOW[i]+' '+d,extra:`Fill: ${A[i].fill==null?'—':A[i].fill+'%'} · ${A[i].n} report(s)`})),sS,{h:230,minSlot:60,aria:'Staffing by day'});
+  const sP=[{name:'Plan PPH',color:COL.plan,vals:A.map(a=>a.plan)},{name:'Actual PPH',color:COL.pph,vals:A.map(a=>a.pph)}];
+  chart($('eoDayP'),days.map((d,i)=>{const v=A[i].pph&&A[i].plan?pct(A[i].pph,A[i].plan):null;return {label:DOW[i]+' '+mdOf(d),sub:v==null?'':v+'%',badSub:v!=null&&v<100,tip:DOW[i]+' '+d,extra:`vs plan: ${v==null?'—':v+'%'} · Volume ${Math.round(A[i].vol).toLocaleString()} · Hours ${Math.round(A[i].hrs).toLocaleString()}`}}),sP,{h:230,minSlot:60,aria:'PPH by day'});
+  legend($('eoLegDS'),sS);legend($('eoLegDP'),sP);
+}
+$('eoWkPrev').onclick=()=>{E.wk=addDays(E.wk||weekEnd(today()),-7);renderDays()};
+$('eoWkNext').onclick=()=>{E.wk=addDays(E.wk||weekEnd(today()),7);renderDays()};
+$('eoWkWe').onchange=e=>{E.wk=e.target.value?weekEnd(e.target.value):'';renderDays()};
 const gKey=r=>E.split==='line'?r.line:E.split==='shift'?(r.shift||'(no shift)'):E.split==='site'?r.site:(r.line+' · '+(r.shift||'(no shift)'));
 function render(){
   if(!E.loaded){$('eoKpis').innerHTML='';['eoStaff','eoPph'].forEach(i=>$(i).innerHTML='<div class="nhempty">Loading…</div>');return}
+  renderDays();
   const rows=rowsF(),weeks=weeksOf(rows),a=agg(rows);
   const vs=a.pph&&a.plan?pct(a.pph,a.plan):null;
   const K=[['Fill rate',a.fill==null?'—':a.fill+'%','actual ÷ requested'],['Requested / day',r1(a.avgReq),'average per report day'],['Actual / day',r1(a.avgAct),'average per report day'],
