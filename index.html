@@ -279,7 +279,6 @@ body.embed header,body.embed #mainTabs{display:none!important}
       <label>From <input type="date" id="nhFrom"></label>
       <label>To <input type="date" id="nhTo"></label>
       <span class="rng" id="nhRng"><button data-w="2">2 wks</button> <button data-w="4">4 wks</button> <button data-w="8">8 wks</button> <button data-w="13">13 wks</button> <button data-w="0">All</button></span>
-      <label><input type="checkbox" id="nhSched"> Show scheduled</label>
     </div>
     <div id="nhBanner"></div>
     <div id="nhConn" class="setup" style="display:none;margin-top:14px">
@@ -1440,7 +1439,7 @@ const NH_MAPS={
 const NH_SITES={'3.0':'Missouri','4.0':'New York','5.0':'South New Jersey','6.0':'Ohio','7.0':'Florida','10.0':'Illinois','12.0':'Washington','13.0':'Atlanta','15.0':'North Carolina','18.0':'Tennessee','19.0':'North Texas','23.0':'North New Jersey','26.0':'South Carolina','101.5':'roadies'};
 const NH_SLUG={status:'status',shift:'sda8290dd7',pick:'sc418c1d53',type:'s0d3ee7089',ss:'sd0332b1b4'};
 const NH={rows:[],req:[],reqMsg:'',site:'',shift:'',from:'',to:'',sched:false,sample:false};
-const NH_COL={started:'#1e90ff',noshow:'#ff7a00',sched:'#a3a8b2',req:'#84d61b'};
+const NH_COL={started:'#1e90ff',noshow:'#ff7a00',sched:'#3b4049',req:'#84d61b'};
 const isoToday=()=>new Date().toLocaleDateString('en-CA');
 const addDays=(iso,n)=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const weekEnd=iso=>{const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+(6-d.getUTCDay()+7)%7);return d.toISOString().slice(0,10)};
@@ -1598,7 +1597,7 @@ function nhFill(){
   const shifts=[...new Set(NH.rows.map(r=>r.shift))].sort();
   $('nhSite').innerHTML='<option value="">All sites</option>'+sites.map(x=>`<option>${esc(x)}</option>`).join('');
   $('nhShift').innerHTML='<option value="">All shifts</option>'+shifts.map(x=>`<option>${esc(x)}</option>`).join('');
-  $('nhSite').value=NH.site;$('nhShift').value=NH.shift;$('nhFrom').value=NH.from;$('nhTo').value=NH.to;$('nhSched').checked=NH.sched;
+  $('nhSite').value=NH.site;$('nhShift').value=NH.shift;$('nhFrom').value=NH.from;$('nhTo').value=NH.to;
 }
 function nhRows(){return NH.rows.filter(r=>(!NH.site||r.site===NH.site)&&(!NH.shift||r.shift===NH.shift)&&(!NH.from||r.date>=NH.from)&&(!NH.to||r.date<=NH.to))}
 function cnt(rows){const c={Started:0,'No Show':0,Scheduled:0,Other:0};rows.forEach(r=>c[r.group]++);return c}
@@ -1660,7 +1659,10 @@ function nhRender(){
   const k=[['Fill rate',fillAll==null?'—':fillAll+'%',hasReq?`${c.Started.toLocaleString()} started of ${rqTot.toLocaleString()} requested`:'Sync to load requests'],['Requested',hasReq?rqTot.toLocaleString():'—','total requested in range'],['Started',c.Started.toLocaleString(),'vs requested · status STARTED'],['No Shows',c['No Show'].toLocaleString(),'No Show I/II/III/DNU/Missing ID'],['Show rate',rate==null?'—':rate+'%','Started ÷ (Started + No Show)'],['Records in view',rows.length.toLocaleString(),`of ${all.toLocaleString()} loaded`],['Scheduled',c.Scheduled.toLocaleString(),'not yet started'],['Other',c.Other.toLocaleString(),'Sent Home, DNR, Bad BG, Already Active']];
   $('nhKpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x[0]}</div><div class="v">${x[1]}</div><div class="s">${x[2]}</div></div>`).join('');
 
-  const mkSeries=(vs,vn,vsch)=>{const s=[{name:'Started',color:NH_COL.started,vals:vs},{name:'No Show',color:NH_COL.noshow,vals:vn}];if(NH.sched)s.push({name:'Scheduled',color:NH_COL.sched,vals:vsch});return s};
+  const tot=x=>x.Started+x['No Show']+x.Scheduled+x.Other;
+  const mkSeries=(vreq,vsch,vs,vn)=>{const s=[];if(hasReq)s.push({name:'Requested',color:NH_COL.req,vals:vreq});
+    s.push({name:'Scheduled to start',color:NH_COL.sched,vals:vsch},{name:'Started',color:NH_COL.started,vals:vs},{name:'No Show',color:NH_COL.noshow,vals:vn});return s};
+  const rqD={};nhReqRows().forEach(r=>{if(r.date)rqD[r.date]=(rqD[r.date]||0)+r.total});
   // by day
   let dmin=NH.from||(rows[0]&&rows.reduce((a,r)=>r.date<a?r.date:a,rows[0].date)),dmax=NH.to||(rows[0]&&rows.reduce((a,r)=>r.date>a?r.date:a,rows[0].date));
   let days=[],cap=62,note='';
@@ -1668,20 +1670,19 @@ function nhRender(){
   if(days.length>cap){days=days.slice(-cap);note=` Showing the last ${cap} days of the range.`}
   const byD={};rows.forEach(r=>{(byD[r.date]=byD[r.date]||cnt([]))[r.group]++});
   const gd=d=>byD[d]||cnt([]);
-  const dS=mkSeries(days.map(d=>gd(d).Started),days.map(d=>gd(d)['No Show']),days.map(d=>gd(d).Scheduled));
-  nhChart($('nhDay'),days.map(d=>{const x=gd(d);return {label:mdOf(d),sub:dowOf(d),tip:dowOf(d)+' '+d,rate:pct(x.Started,x.Started+x['No Show'])}}),dS,{minSlot:30,aria:'Started versus no shows by day'});
+  const dS=mkSeries(days.map(d=>rqD[d]||0),days.map(d=>tot(gd(d))),days.map(d=>gd(d).Started),days.map(d=>gd(d)['No Show']));
+  nhChart($('nhDay'),days.map(d=>{const x=gd(d);return {label:mdOf(d),sub:dowOf(d),tip:dowOf(d)+' '+d,rate:pct(x.Started,x.Started+x['No Show']),fill:rqD[d]?pct(x.Started,rqD[d]):null}}),dS,{minSlot:30,aria:'Started versus no shows by day'});
   nhReqStrip($('nhReqD'),[...new Set(days.map(weekEnd))],null,false);
-  nhLegend($('nhLegD'),dS);$('nhDaySub').textContent='Started vs No Show for each start date.'+note;
+  nhLegend($('nhLegD'),dS);$('nhDaySub').textContent='Requested vs scheduled to start vs started vs no show for each start date. Scheduled to start = everyone with that start date (any status).'+note;
   // by week
   const byW={};rows.forEach(r=>{(byW[r.week]=byW[r.week]||cnt([]))[r.group]++});
   let weeks=[];if(rows.length){const w0=weekEnd(dmin),w1=weekEnd(dmax);for(let w=w0;w<=w1;w=addDays(w,7))weeks.push(w)}
   const gw=w=>byW[w]||cnt([]);
   const rqW={};nhReqRows().forEach(r=>{rqW[r.week]=(rqW[r.week]||0)+r.total});
-  const wS=mkSeries(weeks.map(w=>gw(w).Started),weeks.map(w=>gw(w)['No Show']),weeks.map(w=>gw(w).Scheduled));
-  if(hasReq)wS.unshift({name:'Requested',color:NH_COL.req,vals:weeks.map(w=>rqW[w]||0)});
+  const wS=mkSeries(weeks.map(w=>rqW[w]||0),weeks.map(w=>tot(gw(w))),weeks.map(w=>gw(w).Started),weeks.map(w=>gw(w)['No Show']));
   nhChart($('nhWeek'),weeks.map(w=>{const x=gw(w);return {label:mdOf(w),sub:'WE',tip:'Week ending '+w,rate:pct(x.Started,x.Started+x['No Show']),fill:rqW[w]?pct(x.Started,rqW[w]):null}}),wS,{minSlot:56,aria:'Started versus no shows by week'});
   nhReqStrip($('nhReqW'),weeks,gw,true);
-  nhLegend($('nhLegW'),wS);$('nhWeekSub').textContent='Each column is a week ending Saturday; hover for the show rate.';
+  nhLegend($('nhLegW'),wS);$('nhWeekSub').textContent='Each column is a week ending Saturday: requested, scheduled to start, started, no show. Hover for show rate and fill rate.';
   // tables
   const tbl=(el,keyFn,keys,label)=>{
     const m={};rows.forEach(r=>{(m[keyFn(r)]=m[keyFn(r)]||cnt([]))[r.group]++});
@@ -1699,7 +1700,6 @@ $('nhSite').onchange=e=>{NH.site=e.target.value;nhRender()};
 $('nhShift').onchange=e=>{NH.shift=e.target.value;nhRender()};
 $('nhFrom').onchange=e=>{NH.from=e.target.value;nhRender()};
 $('nhTo').onchange=e=>{NH.to=e.target.value;nhRender()};
-$('nhSched').onchange=e=>{NH.sched=e.target.checked;nhRender()};
 $('nhRng').onclick=e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==null)return;const t=isoToday();NH.from=+w?addDays(t,-(+w*7-1)):'';NH.to=+w?t:'';$('nhFrom').value=NH.from;$('nhTo').value=NH.to;nhRender()};
 $('nhSync').onclick=()=>nhSync(false);
 $('nhAll').onclick=()=>nhSync(true);
