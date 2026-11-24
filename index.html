@@ -1479,7 +1479,11 @@ function nhReqNorm(x){
   const m=t.match(/^(Site\s+[\d.]+\s*-\s*[^-]+?)\s*-\s*[A-Za-z]{3}\s+\d/);
   const pk=RQ_PICK[x.pick]||'';
   const site=m?m[1].trim():(pk?('Site '+pk+(NH_SITES[pk]?' - '+NH_SITES[pk]:'')):'Unassigned');
-  return {date:d,week:d?weekEnd(d):'',site,shift:RQ_SHIFT[x.shift]||String(x.shift||''),total:Number(x.total)||0};
+  // "What Days" on the request: 01 Sun … 07 Sat, XX Everyday → day-of-week numbers 0–6
+  const RQ_DAYS={'67092d0306fe10d2382ed0cb':[0],'67092d0306fe10d2382ed0cc':[1],'67092d0306fe10d2382ed0cd':[2],'67092d0306fe10d2382ed0ce':[3],'67092d0306fe10d2382ed0cf':[4],'67092d0306fe10d2382ed0d0':[5],'67092d0306fe10d2382ed0d1':[6],'67092d0306fe10d2382ed0d2':[0,1,2,3,4,5,6]};
+  const dl=(Array.isArray(x.days)?x.days:(x.days?[x.days]:[])).map(v=>{if(RQ_DAYS[v])return RQ_DAYS[v];const m=String(v).match(/^0?(\d)\s/);if(m)return[+m[1]-1];return /every/i.test(v)?[0,1,2,3,4,5,6]:[]});
+  const days=[...new Set(dl.flat())].sort();
+  return {date:d,week:d?weekEnd(d):'',site,shift:RQ_SHIFT[x.shift]||String(x.shift||''),total:Number(x.total)||0,days};
 }
 function nhReqRows(){return NH.req.filter(r=>r.week&&(!NH.site||siteNum(r.site)===siteNum(NH.site))&&(!NH.shift||r.shift===nhBaseShift(NH.shift)))}
 function nhReqStrip(el,weeks,gw,withStarted){
@@ -1662,7 +1666,10 @@ function nhRender(){
   const tot=x=>x.Started+x['No Show']+x.Scheduled+x.Other;
   const mkSeries=(vreq,vsch,vs,vn)=>{const s=[];if(hasReq)s.push({name:'Requested',color:NH_COL.req,vals:vreq});
     s.push({name:'Scheduled to start',color:NH_COL.sched,vals:vsch},{name:'Started',color:NH_COL.started,vals:vs},{name:'No Show',color:NH_COL.noshow,vals:vn});return s};
-  const rqD={};nhReqRows().forEach(r=>{if(r.date)rqD[r.date]=(rqD[r.date]||0)+r.total});
+  // by-day requested: each weekly request is split evenly across its "What Days" (all 7 days when none are picked)
+  const rqD={};nhReqRows().forEach(r=>{if(!r.week)return;const ds=r.days&&r.days.length?r.days:[0,1,2,3,4,5,6],per=r.total/ds.length;
+    ds.forEach(i=>{const d=addDays(r.week,i-6);rqD[d]=(rqD[d]||0)+per})});
+  Object.keys(rqD).forEach(d=>rqD[d]=Math.round(rqD[d]));
   // by day
   let dmin=NH.from||(rows[0]&&rows.reduce((a,r)=>r.date<a?r.date:a,rows[0].date)),dmax=NH.to||(rows[0]&&rows.reduce((a,r)=>r.date>a?r.date:a,rows[0].date));
   let days=[],cap=62,note='';
@@ -1673,7 +1680,7 @@ function nhRender(){
   const dS=mkSeries(days.map(d=>rqD[d]||0),days.map(d=>tot(gd(d))),days.map(d=>gd(d).Started),days.map(d=>gd(d)['No Show']));
   nhChart($('nhDay'),days.map(d=>{const x=gd(d);return {label:mdOf(d),sub:dowOf(d),tip:dowOf(d)+' '+d,rate:pct(x.Started,x.Started+x['No Show']),fill:rqD[d]?pct(x.Started,rqD[d]):null}}),dS,{minSlot:30,aria:'Started versus no shows by day'});
   nhReqStrip($('nhReqD'),[...new Set(days.map(weekEnd))],null,false);
-  nhLegend($('nhLegD'),dS);$('nhDaySub').textContent='Requested vs scheduled to start vs started vs no show for each start date. Scheduled to start = everyone with that start date (any status).'+note;
+  nhLegend($('nhLegD'),dS);$('nhDaySub').textContent='Requested vs scheduled to start vs started vs no show for each start date. Requests are entered per week, so each one is split evenly across its "What Days". Scheduled to start = everyone with that start date (any status).'+note;
   // by week
   const byW={};rows.forEach(r=>{(byW[r.week]=byW[r.week]||cnt([]))[r.group]++});
   let weeks=[];if(rows.length){const w0=weekEnd(dmin),w1=weekEnd(dmax);for(let w=w0;w<=w1;w=addDays(w,7))weeks.push(w)}
